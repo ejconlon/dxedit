@@ -15,8 +15,24 @@ def match_any():
 def match_like(p):
     if len(p) != 8:
         raise Exception("Need 8bit pattern")
+    m = {}
+    ret_mask = 0
+    for i in range(8):
+        j = 7-i
+        mask = 1 << i
+        c = p[j]
+        if c == '0':
+            m[mask] = False
+        elif c == '1':
+            m[mask] = True
+        else:
+            ret_mask |= mask
     def f(y):
-        return [y] # TODO
+        for (mask, should_be_nonzero) in m.items():
+            is_nonzero = mask & y != 0
+            if is_nonzero != should_be_nonzero:
+                return None
+        return [ret_mask & y] # TODO
     return f
 
 def match_seven():
