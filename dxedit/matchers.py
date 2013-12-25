@@ -37,3 +37,14 @@ def match_like(p):
 
 def match_seven():
     return match_like('0vvvvvvv')
+
+def match_many(match_one):
+    def f(ys):
+        rs = []
+        for y in ys:
+            r = match_one(y)
+            if r is None:
+                return None
+            else:
+                rs.extend(r)
+        return rs

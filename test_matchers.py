@@ -23,6 +23,12 @@ class TestMatchers(unittest.TestCase):
     def assertNotMatchLike(self, gold, test):
         self.assertEquals(None, match_like(gold)(test))
 
+    def assertMatchSeven(self, test):
+        self.assertEquals([test], match_seven()(test))
+
+    def assertNotMatchSeven(self, test):
+        self.assertEquals(None, match_seven()(test))
+
     # test cases
 
     def test_match_equals(self):
@@ -38,5 +44,11 @@ class TestMatchers(unittest.TestCase):
         self.assertMatchLike(0xF, '0000vvvv', 0xF)
         self.assertNotMatchLike('0000vvvv', 0xFF)
         self.assertMatchLike(0xF0, 'vvvv0000', 0xF0)
+        self.assertNotMatchLike('vvvv0000', 0xFF)
         self.assertMatchLike(0xF0, 'vvvv1111', 0xFF)
+        self.assertNotMatchLike('vvvv1111', 0xF0)
+
+    def test_match_seven(self):
+        self.assertMatchSeven(0x7F)
+        self.assertNotMatchSeven(0xFF)
 
