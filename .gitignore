@@ -1,0 +1,4 @@
+__pycache__
+*.pyc
+dxedit/__pycache__
+dxedit/*.pyc
