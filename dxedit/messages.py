@@ -80,6 +80,7 @@ def parse_seq_with_spec(seq, spec):
     # if we broke early for a many section,
     if spec_i < len(spec):
         raise Exception("TODO")
+    return rs
 
 def match(byte, section):
     assert section[1] == N.one
