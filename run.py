@@ -39,14 +39,40 @@ def print_pseqs(pseqs):
 
 def check_pseqs(pseqs):
     for pseq in pseqs:
-        msb = lookup(B.byte_count_msb, pseq)
-        lsb = lookup(B.byte_count_lsb, pseq)
-        data = lookup(B.data, pseq)
-        assert all_none_or_not(msb, lsb, data)
-        if data is not None:
-            l = len(data[1])
-            s = msb[1][0] << 7 | lsb[1][0]
-            assert l == s
+        check_size(pseq)
+        check_checksum(pseq)
+
+def check_size(pseq):
+    msb = lookup(B.byte_count_msb, pseq[1])
+    lsb = lookup(B.byte_count_lsb, pseq[1])
+    data = lookup(B.data, pseq[1])
+    if data is not None and all_not_none(msb, lsb):
+        l = len(data)
+        s = msb[0] << 7 | lsb[0]
+        assert l == s
+    else:
+        assert all_none(msb, lsb)
+
+def check_checksum(pseq):
+    data = lookup(B.data, pseq[1])
+    checksum = lookup(B.checksum, pseq[1])
+    if pseq[0] == 'dx_bulk_dump':
+        # checksum is (sum(data))
+        assert all_not_none(data, checksum)
+        test = ((0xFF ^ sum(data)) + 1) & 0x7F
+        assert test == checksum[0]
+    elif pseq[0] == 'dx200_native_bulk_dump':
+        # checksum is (address + count + sum(data))
+        high = lookup(B.addr_high, pseq[1])
+        mid = lookup(B.addr_mid, pseq[1])
+        low = lookup(B.addr_low, pseq[1])
+        msb = lookup(B.byte_count_msb, pseq[1])
+        lsb = lookup(B.byte_count_lsb, pseq[1])
+        assert all_not_none(data, checksum, high, mid, low, msb, lsb)
+        test = ((0xFF ^ (high[0] + mid[0] + low[0] + msb[0] + lsb[0] + sum(data))) + 1) & 0x7F
+        assert test == checksum[0]
+    else:
+        assert checksum is None
 
 if __name__ == "__main__":
     seqs = read_seqs('DX7Class.syx')

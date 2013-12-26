@@ -30,5 +30,3 @@ def all_none(*xs):
 def all_not_none(*xs):
     return all(x is not None for x in xs)
 
-def all_none_or_not(*xs):
-    return all_none(*xs) or all_not_none(*xs)
