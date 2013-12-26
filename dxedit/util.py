@@ -17,3 +17,18 @@ def assert_contiguous(data, zips):
         assert z[0] == i + 1
         i = z[1]
     assert i == l - 1
+
+def lookup(key, assocs):
+    for item in assocs:
+        if item[0] == key:
+            return item[1]
+    return None
+
+def all_none(*xs):
+    return all(x is None for x in xs)
+
+def all_not_none(*xs):
+    return all(x is not None for x in xs)
+
+def all_none_or_not(*xs):
+    return all_none(*xs) or all_not_none(*xs)

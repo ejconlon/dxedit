@@ -5,6 +5,7 @@ from dxedit.matchers import *
 from dxedit.enums import *
 from dxedit.constants import *
 from dxedit.messages import *
+from dxedit.util import *
 
 class TestMessages(unittest.TestCase):
 
@@ -28,7 +29,7 @@ class TestMessages(unittest.TestCase):
             (B.data, [0x00]),
             (B.sysex_end, [0xF7])
         ]
-        spec = message_specs['dx_param_change']
+        spec = lookup('dx_param_change', message_specs)
         actual_success = parse_seq_with_spec(self.dx_param_change_seq, spec)
         self.assertEqual(expected, actual_success)
         actual_failure = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
@@ -49,7 +50,7 @@ class TestMessages(unittest.TestCase):
             (B.checksum, [0x19]),
             (B.sysex_end, [0xF7])
         ]
-        spec = message_specs['dx200_native_bulk_dump']
+        spec = lookup('dx200_native_bulk_dump', message_specs)
         actual_success = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
         self.assertEqual(expected, actual_success)
         actual_failure = parse_seq_with_spec(self.dx_param_change_seq, spec)

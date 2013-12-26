@@ -6,18 +6,8 @@ from .constants import *
 # message_specs: { message_type : [(B, N, matcher(byte))] }
 # Each spec is a list of sections that can have at most one "N.many" section.
 # (This restriction eliminates the need for backtracking.)
-message_specs = {
-    'dx_param_change': [
-        (B.sysex_start, N.one, match_equals(start_tag)),
-        (B.mfr_id, N.one, match_equals(yamaha_mfr_id)),
-        (B.device_num, N.one, match_like('0001nnnn')),
-        (B.parameter_group_num, N.one, match_seven()),
-        (B.parameter_num, N.one, match_seven()),
-        (B.data, N.one, match_seven()),
-        (B.sysex_end, N.one, match_equals(end_tag))
-    ],
-
-    'dx200_native_bulk_dump': [
+message_specs = [
+    ('dx200_native_bulk_dump', [
         (B.sysex_start, N.one, match_equals(start_tag)),
         (B.mfr_id, N.one, match_equals(yamaha_mfr_id)),
         (B.device_num, N.one, match_like('0000nnnn')),
@@ -30,9 +20,9 @@ message_specs = {
         (B.data, N.many, match_seven()),
         (B.checksum, N.one, match_seven()),
         (B.sysex_end, N.one, match_equals(end_tag))
-    ],
+    ]),
 
-    'dx_bulk_dump': [
+    ('dx_bulk_dump', [
         (B.sysex_start, N.one, match_equals(start_tag)),
         (B.mfr_id, N.one, match_equals(yamaha_mfr_id)),
         (B.device_num, N.one, match_like('0000nnnn')),
@@ -42,8 +32,30 @@ message_specs = {
         (B.data, N.many, match_seven()),
         (B.checksum, N.one, match_seven()),
         (B.sysex_end, N.one, match_equals(end_tag))
-    ]
-}
+    ]),
+
+    ('dx_param_change', [
+        (B.sysex_start, N.one, match_equals(start_tag)),
+        (B.mfr_id, N.one, match_equals(yamaha_mfr_id)),
+        (B.device_num, N.one, match_like('0001nnnn')),
+        (B.parameter_group_num, N.one, match_seven()),
+        (B.parameter_num, N.one, match_seven()),
+        (B.data, N.one, match_seven()),
+        (B.sysex_end, N.one, match_equals(end_tag))
+    ]),
+
+    ('dx200_native_param_change', [
+        (B.sysex_start, N.one, match_equals(start_tag)),
+        (B.mfr_id, N.one, match_equals(yamaha_mfr_id)),
+        (B.device_num, N.one, match_like('0001nnnn')),
+        (B.model_id, N.one, match_one_of(match_equals(system1_model_id), match_equals(system2_model_id))),
+        (B.addr_high, N.one, match_seven()),
+        (B.addr_mid, N.one, match_seven()),
+        (B.addr_low, N.one, match_seven()),
+        (B.data, N.many, match_seven()),
+        (B.sysex_end, N.one, match_equals(end_tag))
+    ])
+]
 
 # seq: [byte]
 # returns: (message_type, [(B, [byte])]) or None
@@ -62,10 +74,10 @@ def num_many(spec):
     return m
 
 def validate_specs(specs):
-    for spec in specs.values():
+    for (message_type, spec) in specs:
         m = num_many(spec)
         if m > 1:
-            raise Exception("Specs may only have one many section")
+            raise Exception("Specs may only have one many section: " + message_type)
 
 validate_specs(message_specs)
 
