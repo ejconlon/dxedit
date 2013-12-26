@@ -79,11 +79,35 @@ def parse_seq_with_spec(seq, spec):
         spec_i += 1
     # if we broke early for a many section,
     if spec_i < len(spec):
-        raise Exception("TODO")
+        rev_rs = []
+        seq_j = len(seq) - 1
+        spec_j = len(spec) - 1
+        while spec_j > spec_i:
+            section = spec[spec_j]
+            assert section[1] == N.one
+            r = match(seq[seq_j], section)
+            if r is None:
+                return None
+            else:
+                rev_rs.append(r)
+            seq_j -= 1
+            spec_j -= 1
+        assert spec_j == spec_i
+        section = spec[spec_i]
+        assert section[1] == N.many
+        ds = []
+        while seq_i <= seq_j:
+            r = match(seq[seq_i], section)
+            if r is None:
+                return None
+            else:
+                ds.extend(r[1])
+            seq_i += 1
+        rs.append((section[0], ds))
+        rs.extend(reversed(rev_rs))
     return rs
 
 def match(byte, section):
-    assert section[1] == N.one
     r = section[2](byte)
     if r is None:
         return None

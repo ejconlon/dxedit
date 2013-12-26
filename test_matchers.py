@@ -9,25 +9,25 @@ class TestMatchers(unittest.TestCase):
     # assertMatch* helpers
 
     def assertMatchEquals(self, gold, test):
-        self.assertEquals([gold], match_equals(gold)(test))
+        self.assertEqual([gold], match_equals(gold)(test))
 
     def assertNotMatchEquals(self, gold, test):
-        self.assertEquals(None, match_equals(gold)(test))
+        self.assertEqual(None, match_equals(gold)(test))
 
     def assertMatchAny(self, test):
-        self.assertEquals([test], match_any()(test))
+        self.assertEqual([test], match_any()(test))
 
     def assertMatchLike(self, expected, gold, test):
-        self.assertEquals([expected], match_like(gold)(test))
+        self.assertEqual([expected], match_like(gold)(test))
 
     def assertNotMatchLike(self, gold, test):
-        self.assertEquals(None, match_like(gold)(test))
+        self.assertEqual(None, match_like(gold)(test))
 
     def assertMatchSeven(self, test):
-        self.assertEquals([test], match_seven()(test))
+        self.assertEqual([test], match_seven()(test))
 
     def assertNotMatchSeven(self, test):
-        self.assertEquals(None, match_seven()(test))
+        self.assertEqual(None, match_seven()(test))
 
     # test cases
 
