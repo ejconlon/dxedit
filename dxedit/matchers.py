@@ -48,3 +48,13 @@ def match_many(match_one):
             else:
                 rs.extend(r)
         return rs
+
+def match_one_of(*matchers):
+    def f(y):
+        for m in matchers:
+            r = m(y)
+            if r is not None:
+                return r
+        return None
+    return f
+

@@ -21,7 +21,7 @@ message_specs = {
         (B.sysex_start, N.one, match_equals(start_tag)),
         (B.mfr_id, N.one, match_equals(yamaha_mfr_id)),
         (B.device_num, N.one, match_like('0000nnnn')),
-        (B.model_id, N.one, match_equals(native_bulk_dump_model_id)),
+        (B.model_id, N.one, match_one_of(match_equals(system1_model_id), match_equals(system2_model_id))),
         (B.byte_count_msb, N.one, match_seven()),
         (B.byte_count_lsb, N.one, match_seven()),
         (B.addr_high, N.one, match_seven()),

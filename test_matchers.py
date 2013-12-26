@@ -52,3 +52,9 @@ class TestMatchers(unittest.TestCase):
         self.assertMatchSeven(0x7F)
         self.assertNotMatchSeven(0xFF)
 
+    def test_match_one_of(self):
+        m = match_one_of(match_equals(0xF), match_equals(0x0))
+        self.assertEqual([0xF], m(0xF))
+        self.assertEqual([0x0], m(0x0))
+        self.assertEqual(None, m(0x9))
+
