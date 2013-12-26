@@ -9,8 +9,8 @@ from dxedit.messages import *
 class TestMessages(unittest.TestCase):
 
     dx_param_change_seq = [0xF0, 0x43, 0x10, 0x19, 0x4D, 0x00, 0xF7]
-    native_bulk_dump_seq = [0xF0, 0x43, 0x00, 0x62, 0x00, 0x05, 0x21, 0x7F,
-                            0x00, 0x03, 0x00, 0x01, 0x0C, 0x32, 0x19, 0xF7]
+    dx200_native_bulk_dump_seq = [0xF0, 0x43, 0x00, 0x62, 0x00, 0x05, 0x21, 0x7F,
+                                  0x00, 0x03, 0x00, 0x01, 0x0C, 0x32, 0x19, 0xF7]
 
     def test_match(self):
         start_section = (B.sysex_start, N.one, match_equals(start_tag))
@@ -31,7 +31,7 @@ class TestMessages(unittest.TestCase):
         spec = message_specs['dx_param_change']
         actual_success = parse_seq_with_spec(self.dx_param_change_seq, spec)
         self.assertEqual(expected, actual_success)
-        actual_failure = parse_seq_with_spec(self.native_bulk_dump_seq, spec)
+        actual_failure = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
         self.assertEqual(None, actual_failure)
 
     def test_parse_many(self):
@@ -49,8 +49,8 @@ class TestMessages(unittest.TestCase):
             (B.checksum, [0x19]),
             (B.sysex_end, [0xF7])
         ]
-        spec = message_specs['native_bulk_dump']
-        actual_success = parse_seq_with_spec(self.native_bulk_dump_seq, spec)
+        spec = message_specs['dx200_native_bulk_dump']
+        actual_success = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
         self.assertEqual(expected, actual_success)
         actual_failure = parse_seq_with_spec(self.dx_param_change_seq, spec)
         self.assertEqual(None, actual_failure)

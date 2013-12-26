@@ -15,6 +15,7 @@ class B(Enum):
     parameter_num = 12
     byte_count_msb = 13
     byte_count_lsb = 14
+    format_num = 15
 
 class S(Enum):
     seven = 7
