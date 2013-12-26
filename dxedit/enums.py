@@ -1,5 +1,11 @@
 from .enum import Enum
 
+class T(Enum):
+    dx200_native_bulk_dump = 1
+    dx_bulk_dump = 2
+    dx200_native_param_change = 3
+    dx_param_change = 4
+
 class B(Enum):
     sysex_start = 1
     sysex_end = 2

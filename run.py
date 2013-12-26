@@ -56,12 +56,12 @@ def check_size(pseq):
 def check_checksum(pseq):
     data = lookup(B.data, pseq[1])
     checksum = lookup(B.checksum, pseq[1])
-    if pseq[0] == 'dx_bulk_dump':
+    if pseq[0] == T.dx_bulk_dump:
         # checksum is (sum(data))
         assert all_not_none(data, checksum)
         test = ((0xFF ^ sum(data)) + 1) & 0x7F
         assert test == checksum[0]
-    elif pseq[0] == 'dx200_native_bulk_dump':
+    elif pseq[0] == T.dx200_native_bulk_dump:
         # checksum is (address + count + sum(data))
         high = lookup(B.addr_high, pseq[1])
         mid = lookup(B.addr_mid, pseq[1])

@@ -29,7 +29,7 @@ class TestMessages(unittest.TestCase):
             (B.data, [0x00]),
             (B.sysex_end, [0xF7])
         ]
-        spec = lookup('dx_param_change', message_specs)
+        spec = lookup(T.dx_param_change, message_specs)
         actual_success = parse_seq_with_spec(self.dx_param_change_seq, spec)
         self.assertEqual(expected, actual_success)
         actual_failure = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
@@ -50,7 +50,7 @@ class TestMessages(unittest.TestCase):
             (B.checksum, [0x19]),
             (B.sysex_end, [0xF7])
         ]
-        spec = lookup('dx200_native_bulk_dump', message_specs)
+        spec = lookup(T.dx200_native_bulk_dump, message_specs)
         actual_success = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
         self.assertEqual(expected, actual_success)
         actual_failure = parse_seq_with_spec(self.dx_param_change_seq, spec)
