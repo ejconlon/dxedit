@@ -64,7 +64,11 @@ def get_table_by_pseq(pseq):
 
 def check_tables(pseq):
     if pseq[0] == T.dx200_native_bulk_dump:
-        table = get_table_by_pseq(pseq)
-        if table == None:
+        anno_table = get_table_by_pseq(pseq)
+        if anno_table == None:
             print(pseq)
             raise Exception('no table')
+        else:
+            data = lookup(B.data, pseq[1])
+            assert len(data) == anno_table.table.size
+            parse_data(data, anno_table.table)

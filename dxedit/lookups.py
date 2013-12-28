@@ -1,6 +1,6 @@
 
 # Range(name, Range(low, high)]
-from collections import namedtuple
+from collections import namedtuple, defaultdict, OrderedDict
 from .enum import Enum
 
 # what is the byte relation? Single byte quantity, msb, lsb?
@@ -34,12 +34,18 @@ class Range:
     def __contains__(self, value):
         return value >= self.start and value <= self.end
 
+    def __len__(self):
+        return self.end - self.start + 1
+
 class Options:
     def __init__(self, *opts):
         self.opts = set(opts)
 
     def __contains__(self, value):
         return value in self.opts
+
+    def __len__(self):
+        return len(self.opts)
 
 class Multi:
     def __init__(self, *ranges):
@@ -48,7 +54,10 @@ class Multi:
     def __contains__(self, value):
         return any(value in r for r in self.ranges)
 
-Row = namedtuple('Row', 'name rel matcher')
+    def __len__(self):
+        return sum(len(r) for r in self.ranges)
+
+Row = namedtuple('Row', 'name rel range')
 
 Table = namedtuple('Table', 'size rows')
 
@@ -66,7 +75,7 @@ table_voice_common_1 = Table(0x29, [
     Row("2-Band EQ Mid Freq", Rel.ONE, Range(0x0E, 0x36)),
     Row("2-Band EQ Mid Gain", Rel.ONE, Range(0x34, 0x4C)),
     Row("2-Band EQ Mid Resonance(Q)", Rel.ONE, Range(0x0A, 0x78)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Cutoff", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance(Q)", Rel.ONE, Range(0x00, 0x74)),
     Row("Filter Type", Rel.ONE, Range(0x00, 0x05)),
@@ -79,7 +88,7 @@ table_voice_common_1 = Table(0x29, [
     Row("FEG Release", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Depth", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Depth Velocity Sense", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
     Row("Noise OSC Type", Rel.ONE, Range(0x00, 0x0F)),
     Row("Mixer Voice Level", Rel.ONE, Range(0x00, 0x7F)),
     Row("Mixer Noise Level", Rel.ONE, Range(0x00, 0x7F)),
@@ -169,15 +178,15 @@ def sixteen(name, rel, rang):
 table_voice_step_seq = Table(0x66, [
     Row("Step Seq Base Unit", Rel.ONE, Options(0x04, 0x06, 0x07)),
     Row("Step Seq Length", Rel.ONE, Options(0x08, 0x0C, 0x10)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00))
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F))
 ] +\
 sixteen("Step Seq Note", Rel.ONE, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Velocity", Rel.ONE, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Gate Time", Rel.LSB, Range(0x00, 0xF7)) +\
-sixteen("Step Seq Control Change", Rel.LSB, Range(0x00, 0xF7)) +\
+sixteen("Step Seq Control Change", Rel.ONE, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
 )
@@ -187,9 +196,9 @@ table_system_1 = Table(0x09, [
     Row("Rhythm 1 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
     Row("Rhythm 2 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
     Row("Rhythm 3 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
     Row("Play Effect Gate Time", Rel.ONE, Range(0x01, 0xC8)),
     Row("Step Seq Loop Type", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03))
 ])
@@ -201,30 +210,30 @@ table_effect = Table(0x03, [
 ])
 
 table_part_mix = Table(0x0F, [
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
     Row("Volume", Rel.ONE, Range(0x00, 0x7F)),
     Row("Pan", Rel.ONE, Range(0x00, 0x7F)),
     Row("Effect 1 Send", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Cutoff Frequency", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00))
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F))
 ])
 
 table_rhythm_step_seq = Table(0x66, [
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00)),
-    Row("RESERVED", Rel.ONE, Options(0x00))
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F))
 ] +\
 sixteen("Step Seq Instrument", Rel.ONE, Range(0x00, 0x78)) +\
 sixteen("Step Seq Velocity", Rel.ONE, Range(0x00, 0x7F)) +\
@@ -300,4 +309,26 @@ def get_table(model_id, hi, mid, low):
             anno = { Tag.SONG: (hi & 0x0F), Tag.MEASURE: (mid + 0x7F) }
             return AnnoTable(anno, table_map[Tables.Song])
     return None
+
+def parse_data(data, table):
+    assert len(data) == table.size
+    d = defaultdict(dict)
+    for (row, byte) in zip(table.rows, data):
+        if byte not in row.range:
+            print(row, byte)
+            raise Exception("Not in range")
+        d[row.name][row.rel] = byte
+    e = OrderedDict()
+    for k in d.keys():
+        vd = d[k]
+        if len(vd) == 1:
+            assert Rel.ONE in vd
+            e[k] = vd[Rel.ONE]
+        elif len(vd) == 2:
+            assert Rel.MSB in vd
+            assert Rel.LSB in vd
+            e[k] = (vd[Rel.MSB] << 7) | vd[Rel.LSB]
+        else:
+            raise Exception("invalid")
+    return e
 
