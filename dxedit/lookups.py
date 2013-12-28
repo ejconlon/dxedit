@@ -9,6 +9,12 @@ class Rel(Enum):
     MSB = 2
     LSB = 3
 
+class Tag(Enum):
+    PATTERN = 1
+    PART = 2
+    SONG = 3
+    MEASURE = 4
+
 class Range:
     def __init__(self, start, end):
         self.start = start
@@ -34,6 +40,8 @@ class Multi:
 Row = namedtuple('Row', 'name rel matcher')
 
 Table = namedtuple('Table', 'name size rows')
+
+AnnoTable = namedtuple('AnnoTable', 'anno table')
 
 table_1_9 = Table("User Pattern Voice Common 1", 0x29, [
     Row("Distortion: Off/On", Rel.ONE, Options(0x00, 0x01)),
@@ -231,24 +239,32 @@ def get_table(model_id, hi, mid, low):
     if low != 0:
         return None
     if model_id == 0x62:
+        anno = { Tag.PATTERN: mid }
         if hi == 0x20:
-            return table_1_9 # return annotated table with e.g. song number
+            return AnnoTable(anno, table_1_9)
         elif hi == 0x21:
-            return table_1_10
+            return AnnoTable(anno, table_1_10)
         elif hi == 0x40 or hi == 0x41:
-            return table_1_11_and_12
+            return AnnoTable(anno, table_1_11_and_12)
         elif hi in range(0x30, 0x40):
-            return table_1_13
+            return AnnoTable(anno, table_1_13)
         elif hi == 0x50:
-            return table_1_14
+            return AnnoTable(anno, table_1_14)
     elif model_id == 0x6D:
         if hi in range(0x20, 0x30):
-            return table_4_10_and_11
+            anno = { Tag.PART: (hi & 0x0F), Tag.PATTERN: mid }
+            return AnnoTable(anno, table_4_10_and_11)
         elif hi == 0x30:
-            return table_4_3_and_7
+            anno = { Tag.PATTERN: mid }
+            return AnnoTable(anno, table_4_3_and_7)
         elif hi in range(0x40, 0x50):
-            return table_4_8_and_9
-        elif hi in range(0x60, 0x80):
-            return table_4_12_and_13
+            anno = { Tag.PART: (hi & 0x0F), Tag.PATTERN: mid }
+            return AnnoTable(anno, table_4_8_and_9)
+        elif hi in range(0x60, 0x70):
+            anno = { Tag.SONG: (hi & 0x0F), Tag.MEASURE: mid }
+            return AnnoTable(anno, table_4_12_and_13)
+        elif hi in range(0x70, 0x80):
+            anno = { Tag.SONG: (hi & 0x0F), Tag.MEASURE: (mid + 0x7F) }
+            return AnnoTable(anno, table_4_12_and_13)
     return None
 
