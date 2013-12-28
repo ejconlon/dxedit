@@ -15,6 +15,17 @@ class Tag(Enum):
     SONG = 3
     MEASURE = 4
 
+class Tables(Enum):
+    VoiceCommon1 = 1
+    VoiceCommon2 = 2
+    VoiceScene = 3
+    VoiceFreeEG = 4
+    VoiceStepSeq = 5
+    Effect = 6
+    PartMix = 7
+    RhythmStepSeq = 8
+    Song = 9
+
 class Range:
     def __init__(self, start, end):
         self.start = start
@@ -39,11 +50,11 @@ class Multi:
 
 Row = namedtuple('Row', 'name rel matcher')
 
-Table = namedtuple('Table', 'name size rows')
+Table = namedtuple('Table', 'size rows')
 
 AnnoTable = namedtuple('AnnoTable', 'anno table')
 
-table_1_9 = Table("User Pattern Voice Common 1", 0x29, [
+table_voice_common_1 = Table(0x29, [
     Row("Distortion: Off/On", Rel.ONE, Options(0x00, 0x01)),
     Row("Distortion: Drive", Rel.ONE, Range(0x00, 0x64)),
     Row("Distortion: AMP Type", Rel.ONE, Range(0x00, 0x03)),
@@ -66,6 +77,7 @@ table_1_9 = Table("User Pattern Voice Common 1", 0x29, [
     Row("FEG Decay", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Sustain", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Release", Rel.ONE, Range(0x00, 0x7F)),
+    Row("FEG Depth", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Depth Velocity Sense", Rel.ONE, Range(0x00, 0x7F)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("Noise OSC Type", Rel.ONE, Range(0x00, 0x0F)),
@@ -81,11 +93,12 @@ table_1_9 = Table("User Pattern Voice Common 1", 0x29, [
     Row("Modulator 2 EG Decay", Rel.ONE, Range(0x00, 0x7F)),
     Row("Modulator 3 EG Decay", Rel.ONE, Range(0x00, 0x7F)),
     Row("AEG Attack", Rel.ONE, Range(0x00, 0x7F)),
+    Row("AEG Decay", Rel.ONE, Range(0x00, 0x7F)),
     Row("AEG Sustain", Rel.ONE, Range(0x00, 0x7F)),
     Row("AEG Release", Rel.ONE, Range(0x00, 0x7F))
 ])
 
-table_1_10 = Table("User Pattern Voice Common 2", 0x05, [
+table_voice_common_2 = Table(0x05, [
     Row("Modulator Select", Rel.ONE, Range(0x00, 0x03)),
     Row("Scene Control", Rel.ONE, Range(0x00, 0x7F)),
     Row("Common Tempo", Rel.MSB, Range(0x00, 0x4A)),
@@ -93,7 +106,7 @@ table_1_10 = Table("User Pattern Voice Common 2", 0x05, [
     Row("Play Effect Swing", Rel.ONE, Range(0x32, 0x53))
 ])
 
-table_1_11_and_12 = Table("User Patter Voice Scene 1", 0x1C, [
+table_voice_scene = Table(0x1C, [
     Row("Filter Cutoff", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance(Q)", Rel.ONE, Range(0x00, 0x74)),
     Row("FEG Attack", Rel.ONE, Range(0x00, 0x7F)),
@@ -143,7 +156,7 @@ track_datas = flatten([flatten([
     for i in range(1, 4 + 1)
 ])
 
-table_1_13 = Table("User Pattern Voice Free EG", 0x60C, [
+table_voice_free_eg = Table(0x60C, [
     Row("Free EG Trigger", Rel.ONE, Range(0x00, 0x03)),
     Row("Free EG Loop Type", Rel.ONE, Range(0x00, 0x04)),
     Row("Free EG Length", Rel.ONE, Range(0x02, 0x60)),
@@ -153,7 +166,7 @@ table_1_13 = Table("User Pattern Voice Free EG", 0x60C, [
 def sixteen(name, rel, rang):
     return [Row(name + " " + str(i), rel, rang) for i in range(1, 16 + 1)]
 
-table_1_14 = Table("User Pattern Step Seq Pattern", 0x66, [
+table_voice_step_seq = Table(0x66, [
     Row("Step Seq Base Unit", Rel.ONE, Options(0x04, 0x06, 0x07)),
     Row("Step Seq Length", Rel.ONE, Options(0x08, 0x0C, 0x10)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
@@ -169,7 +182,7 @@ sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
 )
 
-table_4_2 = Table("System 1", 0x09, [
+table_system_1 = Table(0x09, [
     Row("Synth Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
     Row("Rhythm 1 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
     Row("Rhythm 2 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
@@ -181,13 +194,13 @@ table_4_2 = Table("System 1", 0x09, [
     Row("Step Seq Loop Type", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03))
 ])
 
-table_4_3_and_7 = Table("Current Effect", 0x03, [
+table_effect = Table(0x03, [
     Row("Effect Type MSB", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03)), # Not MSB rel b/c of lookup table
     Row("Effect Type LSB", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03)), # Not LSB rel b/c of lookup table
     Row("Effect Parameter", Rel.ONE, Range(0x00, 0x7F))
 ])
 
-table_4_8_and_9 = Table("Multi Part", 0x0F, [
+table_part_mix = Table(0x0F, [
     Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
@@ -205,7 +218,8 @@ table_4_8_and_9 = Table("Multi Part", 0x0F, [
     Row("RESERVED", Rel.ONE, Options(0x00))
 ])
 
-table_4_10_and_11 = Table("Rhythm Track Current Step Seq Pattern", 0x66, [
+table_rhythm_step_seq = Table(0x66, [
+    Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("RESERVED", Rel.ONE, Options(0x00)),
@@ -220,7 +234,7 @@ sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0x07)) +\
 sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
 )
 
-table_4_12_and_13 = Table("User Song", 0x0B, [
+table_song = Table(0x0B, [
     # TODO range for all these 2-bytes
     Row("Pattern Num", Rel.MSB, Range(0x00, 0x7F)),
     Row("Pattern Num", Rel.LSB, Range(0x00, 0x7F)),
@@ -235,36 +249,55 @@ table_4_12_and_13 = Table("User Song", 0x0B, [
     Row("Track Mute", Rel.ONE, Multi(Range(0x00, 0x0F), Options(0x7F))),
 ])
 
+table_map = {
+    Tables.VoiceCommon1: table_voice_common_1,
+    Tables.VoiceCommon2: table_voice_common_2,
+    Tables.VoiceScene: table_voice_scene,
+    Tables.VoiceFreeEG: table_voice_free_eg,
+    Tables.VoiceStepSeq: table_voice_step_seq,
+    Tables.Effect: table_effect,
+    Tables.PartMix: table_part_mix,
+    Tables.RhythmStepSeq: table_rhythm_step_seq,
+    Tables.Song: table_song
+}
+
+def check_tables(table_map):
+    for (k, v) in table_map.items():
+        if v.size != len(v.rows):
+            raise Exception('Invalid table: ' + str(k) + " " + str(v.size) + " " + str(len(v.rows)))
+
+check_tables(table_map)
+
 def get_table(model_id, hi, mid, low):
     if low != 0:
         return None
     if model_id == 0x62:
         anno = { Tag.PATTERN: mid }
         if hi == 0x20:
-            return AnnoTable(anno, table_1_9)
+            return AnnoTable(anno, table_map[Tables.VoiceCommon1])
         elif hi == 0x21:
-            return AnnoTable(anno, table_1_10)
+            return AnnoTable(anno, table_map[Tables.VoiceCommon2])
         elif hi == 0x40 or hi == 0x41:
-            return AnnoTable(anno, table_1_11_and_12)
+            return AnnoTable(anno, table_map[Tables.VoiceScene])
         elif hi in range(0x30, 0x40):
-            return AnnoTable(anno, table_1_13)
+            return AnnoTable(anno, table_map[Tables.VoiceFreeEG])
         elif hi == 0x50:
-            return AnnoTable(anno, table_1_14)
+            return AnnoTable(anno, table_map[Tables.VoiceStepSeq])
     elif model_id == 0x6D:
         if hi in range(0x20, 0x30):
             anno = { Tag.PART: (hi & 0x0F), Tag.PATTERN: mid }
-            return AnnoTable(anno, table_4_10_and_11)
+            return AnnoTable(anno, table_map[Tables.RhythmStepSeq])
         elif hi == 0x30:
             anno = { Tag.PATTERN: mid }
-            return AnnoTable(anno, table_4_3_and_7)
+            return AnnoTable(anno, table_map[Tables.Effect])
         elif hi in range(0x40, 0x50):
             anno = { Tag.PART: (hi & 0x0F), Tag.PATTERN: mid }
-            return AnnoTable(anno, table_4_8_and_9)
+            return AnnoTable(anno, table_map[Tables.PartMix])
         elif hi in range(0x60, 0x70):
             anno = { Tag.SONG: (hi & 0x0F), Tag.MEASURE: mid }
-            return AnnoTable(anno, table_4_12_and_13)
+            return AnnoTable(anno, table_map[Tables.Song])
         elif hi in range(0x70, 0x80):
             anno = { Tag.SONG: (hi & 0x0F), Tag.MEASURE: (mid + 0x7F) }
-            return AnnoTable(anno, table_4_12_and_13)
+            return AnnoTable(anno, table_map[Tables.Song])
     return None
 
