@@ -75,7 +75,7 @@ table_voice_common_1 = Table(0x29, [
     Row("2-Band EQ Mid Freq", Rel.ONE, Range(0x0E, 0x36)),
     Row("2-Band EQ Mid Gain", Rel.ONE, Range(0x34, 0x4C)),
     Row("2-Band EQ Mid Resonance(Q)", Rel.ONE, Range(0x0A, 0x78)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Cutoff", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance(Q)", Rel.ONE, Range(0x00, 0x74)),
     Row("Filter Type", Rel.ONE, Range(0x00, 0x05)),
@@ -88,7 +88,7 @@ table_voice_common_1 = Table(0x29, [
     Row("FEG Release", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Depth", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Depth Velocity Sense", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
     Row("Noise OSC Type", Rel.ONE, Range(0x00, 0x0F)),
     Row("Mixer Voice Level", Rel.ONE, Range(0x00, 0x7F)),
     Row("Mixer Noise Level", Rel.ONE, Range(0x00, 0x7F)),
@@ -178,10 +178,10 @@ def sixteen(name, rel, rang):
 table_voice_step_seq = Table(0x66, [
     Row("Step Seq Base Unit", Rel.ONE, Options(0x04, 0x06, 0x07)),
     Row("Step Seq Length", Rel.ONE, Options(0x08, 0x0C, 0x10)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F))
+    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 4", Rel.ONE, Range(0x00, 0x7F))
 ] +\
 sixteen("Step Seq Note", Rel.ONE, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Velocity", Rel.ONE, Range(0x00, 0xF7)) +\
@@ -196,9 +196,9 @@ table_system_1 = Table(0x09, [
     Row("Rhythm 1 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
     Row("Rhythm 2 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
     Row("Rhythm 3 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
     Row("Play Effect Gate Time", Rel.ONE, Range(0x01, 0xC8)),
     Row("Step Seq Loop Type", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03))
 ])
@@ -210,30 +210,30 @@ table_effect = Table(0x03, [
 ])
 
 table_part_mix = Table(0x0F, [
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 4", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 5", Rel.ONE, Range(0x00, 0x7F)),
     Row("Volume", Rel.ONE, Range(0x00, 0x7F)),
     Row("Pan", Rel.ONE, Range(0x00, 0x7F)),
     Row("Effect 1 Send", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 6", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 7", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Cutoff Frequency", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F))
+    Row("RESERVED 8", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 9", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 10", Rel.ONE, Range(0x00, 0x7F))
 ])
 
 table_rhythm_step_seq = Table(0x66, [
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x7F))
+    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 4", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 5", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED 6", Rel.ONE, Range(0x00, 0x7F))
 ] +\
 sixteen("Step Seq Instrument", Rel.ONE, Range(0x00, 0x78)) +\
 sixteen("Step Seq Velocity", Rel.ONE, Range(0x00, 0x7F)) +\
@@ -331,4 +331,18 @@ def parse_data(data, table):
         else:
             raise Exception("invalid")
     return e
+
+def unparse_data(parsed, table):
+    data = []
+    for row in table.rows:
+        assert row.name in parsed
+        value = parsed[row.name]
+        if row.rel == Rel.MSB:
+            value = value >> 7
+        elif row.rel == Rel.LSB:
+            value = value & 0x7F
+        assert value in row.range
+        data.append(value)
+    assert len(data) == table.size
+    return data
 

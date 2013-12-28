@@ -71,4 +71,10 @@ def check_tables(pseq):
         else:
             data = lookup(B.data, pseq[1])
             assert len(data) == anno_table.table.size
-            parse_data(data, anno_table.table)
+            parsed = parse_data(data, anno_table.table)
+            unparsed = unparse_data(parsed, anno_table.table)
+            if data != unparsed:
+                print(data)
+                print(unparsed)
+                raise Exception("not equal")
+
