@@ -40,10 +40,10 @@ def print_pseqs(pseqs):
 
 def check_pseqs(pseqs):
     for pseq in pseqs:
+        print_addr(pseq)
         check_count(pseq)
         check_checksum(pseq)
         check_tables(pseq)
-        print_addr(pseq)
 
 def print_addr(pseq):
     if pseq[0] == T.dx200_native_bulk_dump:

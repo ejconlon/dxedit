@@ -53,11 +53,12 @@ def check_checksum(pseq):
 
 def get_table_by_pseq(pseq):
     if pseq[0] == T.dx200_native_bulk_dump:
+        model_id = lookup(B.model_id, pseq[1])
         high = lookup(B.addr_high, pseq[1])
         mid = lookup(B.addr_mid, pseq[1])
         low = lookup(B.addr_low, pseq[1])
-        assert all_not_none(high, mid, low)
-        return get_table(high[0], mid[0], low[0])
+        assert all_not_none(model_id, high, mid, low)
+        return get_table(model_id[0], high[0], mid[0], low[0])
     else:
         return None
 

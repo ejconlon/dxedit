@@ -24,6 +24,13 @@ class Options:
     def __contains__(self, value):
         return value in self.opts
 
+class Multi:
+    def __init__(self, *ranges):
+        self.ranges = ranges
+
+    def __contains__(self, value):
+        return any(value in r for r in self.ranges)
+
 Row = namedtuple('Row', 'name rel matcher')
 
 Table = namedtuple('Table', 'name size rows')
@@ -40,7 +47,7 @@ table_1_9 = Table("User Pattern Voice Common 1", 0x29, [
     Row("2-Band EQ Mid Freq", Rel.ONE, Range(0x0E, 0x36)),
     Row("2-Band EQ Mid Gain", Rel.ONE, Range(0x34, 0x4C)),
     Row("2-Band EQ Mid Resonance(Q)", Rel.ONE, Range(0x0A, 0x78)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("Filter Cutoff", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance(Q)", Rel.ONE, Range(0x00, 0x74)),
     Row("Filter Type", Rel.ONE, Range(0x00, 0x05)),
@@ -52,7 +59,7 @@ table_1_9 = Table("User Pattern Voice Common 1", 0x29, [
     Row("FEG Sustain", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Release", Rel.ONE, Range(0x00, 0x7F)),
     Row("FEG Depth Velocity Sense", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
     Row("Noise OSC Type", Rel.ONE, Range(0x00, 0x0F)),
     Row("Mixer Voice Level", Rel.ONE, Range(0x00, 0x7F)),
     Row("Mixer Noise Level", Rel.ONE, Range(0x00, 0x7F)),
@@ -141,10 +148,10 @@ def sixteen(name, rel, rang):
 table_1_14 = Table("User Pattern Step Seq Pattern", 0x66, [
     Row("Step Seq Base Unit", Rel.ONE, Options(0x04, 0x06, 0x07)),
     Row("Step Seq Length", Rel.ONE, Options(0x08, 0x0C, 0x10)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x00)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x00)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x00)),
-    Row("RESERVED", Rel.ONE, Range(0x00, 0x00))
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00))
 ] +\
 sixteen("Step Seq Note", Rel.ONE, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Velocity", Rel.ONE, Range(0x00, 0xF7)) +\
@@ -154,19 +161,94 @@ sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
 )
 
-def get_table(hi, mid, low):
+table_4_2 = Table("System 1", 0x09, [
+    Row("Synth Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+    Row("Rhythm 1 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+    Row("Rhythm 2 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+    Row("Rhythm 3 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("Play Effect Gate Time", Rel.ONE, Range(0x01, 0xC8)),
+    Row("Step Seq Loop Type", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03))
+])
+
+table_4_3_and_7 = Table("Current Effect", 0x03, [
+    Row("Effect Type MSB", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03)), # Not MSB rel b/c of lookup table
+    Row("Effect Type LSB", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03)), # Not LSB rel b/c of lookup table
+    Row("Effect Parameter", Rel.ONE, Range(0x00, 0x7F))
+])
+
+table_4_8_and_9 = Table("Multi Part", 0x0F, [
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("Volume", Rel.ONE, Range(0x00, 0x7F)),
+    Row("Pan", Rel.ONE, Range(0x00, 0x7F)),
+    Row("Effect 1 Send", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("Filter Cutoff Frequency", Rel.ONE, Range(0x00, 0x7F)),
+    Row("Filter Resonance", Rel.ONE, Range(0x00, 0x7F)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00))
+])
+
+table_4_10_and_11 = Table("Rhythm Track Current Step Seq Pattern", 0x66, [
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00)),
+    Row("RESERVED", Rel.ONE, Options(0x00))
+] +\
+sixteen("Step Seq Instrument", Rel.ONE, Range(0x00, 0x78)) +\
+sixteen("Step Seq Velocity", Rel.ONE, Range(0x00, 0x7F)) +\
+sixteen("Step Seq Gate Time", Rel.LSB, Range(0x00, 0x7F)) +\
+sixteen("Step Seq Pitch", Rel.ONE, Range(0x00, 0x7F)) +\
+sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0x07)) +\
+sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
+)
+
+table_4_12_and_13 = Table("User Song", 0x0B, [
+    # TODO range for all these 2-bytes
+    Row("Pattern Num", Rel.MSB, Range(0x00, 0x7F)),
+    Row("Pattern Num", Rel.LSB, Range(0x00, 0x7F)),
+    Row("BPM", Rel.MSB, Range(0x00, 0x7F)),
+    Row("BPM", Rel.LSB, Range(0x00, 0x7F)),
+    Row("Play FX Gate Time", Rel.MSB, Range(0x00, 0x7F)),
+    Row("Play FX Gate Time", Rel.LSB, Range(0x00, 0x7F)),
+    Row("Beat", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03, 0x7F)),
+    Row("Swing", Rel.ONE, Multi(Range(0x32, 0x53), Options(0x7F))),
+    Row("Pitch", Rel.ONE, Multi(Range(0x28, 0x58), Options(0x7F))),
+    Row("Loop Type", Rel.ONE, Options(0x00, 0x01, 0x7F)),
+    Row("Track Mute", Rel.ONE, Multi(Range(0x00, 0x0F), Options(0x7F))),
+])
+
+def get_table(model_id, hi, mid, low):
     if low != 0:
         return None
-    if hi == 0x20:
-        return table_1_9
-    elif hi == 0x21:
-        return table_1_10
-    elif hi == 0x40 or hi == 0x41:
-        return table_1_11_and_12
-    elif hi in range(0x30, 0x40):
-        return table_1_13
-    elif hi == 0x50:
-        return table_1_14
-    else:
-        return None
+    if model_id == 0x62:
+        if hi == 0x20:
+            return table_1_9 # return annotated table with e.g. song number
+        elif hi == 0x21:
+            return table_1_10
+        elif hi == 0x40 or hi == 0x41:
+            return table_1_11_and_12
+        elif hi in range(0x30, 0x40):
+            return table_1_13
+        elif hi == 0x50:
+            return table_1_14
+    elif model_id == 0x6D:
+        if hi in range(0x20, 0x30):
+            return table_4_10_and_11
+        elif hi == 0x30:
+            return table_4_3_and_7
+        elif hi in range(0x40, 0x50):
+            return table_4_8_and_9
+        elif hi in range(0x60, 0x80):
+            return table_4_12_and_13
+    return None
 
