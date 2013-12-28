@@ -42,6 +42,7 @@ def check_pseqs(pseqs):
     for pseq in pseqs:
         check_count(pseq)
         check_checksum(pseq)
+        check_tables(pseq)
         print_addr(pseq)
 
 def print_addr(pseq):

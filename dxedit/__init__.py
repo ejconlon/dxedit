@@ -1,2 +1,2 @@
 
-__all__ = ["constants", "utils", "messages", "matchers", "enums"]
+__all__ = ["constants", "utils", "messages", "matchers", "enums", "lookups", "pseqs"]
