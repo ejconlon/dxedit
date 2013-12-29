@@ -83,7 +83,11 @@ object DXEdit {
   }
 
   object Constants {
-    val START_TAG: Byte = 0xF7.toByte
+    val START_TAG: Byte = 0xF0.toByte
+    val END_TAG: Byte = 0xF7.toByte
+    val YAMAHA_MFR_ID: Byte = 0x43.toByte
+    val SYSTEM1_MODEL_ID: Byte = 0x62.toByte
+    val SYSTEM2_MODEL_ID: Byte = 0x6D.toByte
   }
 
   import FrameType._
@@ -113,12 +117,25 @@ object DXEdit {
     import ByteMatchers._
     import Constants._
 
-    lazy val t1: FrameTable =
+    lazy val tables: Seq[FrameTable] = Seq(
       FrameTable(
         DX200_NATIVE_BULK_DUMP, 12,
         Seq(
-          (SYSEX_START, ONCE, matchEquals(START_TAG))
-        ))
+          (SYSEX_START, ONCE, matchEquals(START_TAG)),
+          (MFR_ID, ONCE, matchEquals(YAMAHA_MFR_ID)),
+          (DEVICE_NUM, ONCE, matchLike("0000nnnn")),
+          (MODEL_ID, ONCE, matchOneOf(matchEquals(SYSTEM1_MODEL_ID), matchEquals(SYSTEM2_MODEL_ID))),
+          (BYTE_COUNT_MSB, ONCE, matchSeven),
+          (BYTE_COUNT_LSB, ONCE, matchSeven),
+          (ADDR_HIGH, ONCE, matchSeven),
+          (ADDR_MID, ONCE, matchSeven),
+          (ADDR_LOW, ONCE, matchSeven),
+          (DATA, MANY, matchSeven),
+          (CHECKSUM, ONCE, matchSeven),
+          (SYSEX_END, ONCE, matchEquals(END_TAG))
+        )
+      )
+    )
   }
 
   case class Address(modelId: Byte, high: Byte, mid: Byte, low: Byte)
