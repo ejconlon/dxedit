@@ -2,3 +2,9 @@ __pycache__
 *.pyc
 dxedit/__pycache__
 dxedit/*.pyc
+*.class
+target/*
+*.log
+*.swo
+*.swp
+*~
