@@ -61,7 +61,7 @@ class Multi:
 
 Row = namedtuple('Row', 'name rel range')
 
-Table = namedtuple('Table', 'size rows')
+Table = namedtuple('Table', 'name, size rows')
 
 AnnoTable = namedtuple('AnnoTable', 'anno table')
 
@@ -69,7 +69,7 @@ AnnoData = namedtuple('AnnoData', 'anno_table parsed')
 
 Message = namedtuple('Message', 'model_id high mid low data')
 
-table_voice_common_1 = Table(0x29, [
+table_voice_common_1 = Table(Tables.VoiceCommon1, 0x29, [
     Row("Distortion: Off/On", Rel.ONE, Options(0x00, 0x01)),
     Row("Distortion: Drive", Rel.ONE, Range(0x00, 0x64)),
     Row("Distortion: AMP Type", Rel.ONE, Range(0x00, 0x03)),
@@ -113,7 +113,7 @@ table_voice_common_1 = Table(0x29, [
     Row("AEG Release", Rel.ONE, Range(0x00, 0x7F))
 ])
 
-table_voice_common_2 = Table(0x05, [
+table_voice_common_2 = Table(Tables.VoiceCommon2, 0x05, [
     Row("Modulator Select", Rel.ONE, Range(0x00, 0x03)),
     Row("Scene Control", Rel.ONE, Range(0x00, 0x7F)),
     Row("Common Tempo", Rel.MSB, Range(0x00, 0x4A)),
@@ -121,7 +121,7 @@ table_voice_common_2 = Table(0x05, [
     Row("Play Effect Swing", Rel.ONE, Range(0x32, 0x53))
 ])
 
-table_voice_scene = Table(0x1C, [
+table_voice_scene = Table(Tables.VoiceScene, 0x1C, [
     Row("Filter Cutoff", Rel.ONE, Range(0x00, 0x7F)),
     Row("Filter Resonance(Q)", Rel.ONE, Range(0x00, 0x74)),
     Row("FEG Attack", Rel.ONE, Range(0x00, 0x7F)),
@@ -171,7 +171,7 @@ track_datas = flatten([flatten([
     for i in range(1, 4 + 1)
 ])
 
-table_voice_free_eg = Table(0x60C, [
+table_voice_free_eg = Table(Tables.VoiceFreeEG, 0x60C, [
     Row("Free EG Trigger", Rel.ONE, Range(0x00, 0x03)),
     Row("Free EG Loop Type", Rel.ONE, Range(0x00, 0x04)),
     Row("Free EG Length", Rel.ONE, Range(0x02, 0x60)),
@@ -181,7 +181,7 @@ table_voice_free_eg = Table(0x60C, [
 def sixteen(name, rel, rang):
     return [Row(name + " " + str(i), rel, rang) for i in range(1, 16 + 1)]
 
-table_voice_step_seq = Table(0x66, [
+table_voice_step_seq = Table(Tables.VoiceStepSeq, 0x66, [
     Row("Step Seq Base Unit", Rel.ONE, Options(0x04, 0x06, 0x07)),
     Row("Step Seq Length", Rel.ONE, Options(0x08, 0x0C, 0x10)),
     Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
@@ -197,25 +197,25 @@ sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0xF7)) +\
 sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
 )
 
-table_system_1 = Table(0x09, [
-    Row("Synth Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
-    Row("Rhythm 1 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
-    Row("Rhythm 2 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
-    Row("Rhythm 3 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
-    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
-    Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
-    Row("Play Effect Gate Time", Rel.ONE, Range(0x01, 0xC8)),
-    Row("Step Seq Loop Type", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03))
-])
+#table_system_1 = Table(Tables.System1, 0x09, [
+#    Row("Synth Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+#    Row("Rhythm 1 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+#    Row("Rhythm 2 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+#    Row("Rhythm 3 Receive Channel", Rel.ONE, Options(*(list(range(16)) + [0x7F]))),
+#    Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
+#    Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
+#    Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
+#    Row("Play Effect Gate Time", Rel.ONE, Range(0x01, 0xC8)),
+#    Row("Step Seq Loop Type", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03))
+#])
 
-table_effect = Table(0x03, [
+table_effect = Table(Tables.Effect, 0x03, [
     Row("Effect Type MSB", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03)), # Not MSB rel b/c of lookup table
     Row("Effect Type LSB", Rel.ONE, Options(0x00, 0x01, 0x02, 0x03)), # Not LSB rel b/c of lookup table
     Row("Effect Parameter", Rel.ONE, Range(0x00, 0x7F))
 ])
 
-table_part_mix = Table(0x0F, [
+table_part_mix = Table(Tables.PartMix, 0x0F, [
     Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
     Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
     Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
@@ -233,7 +233,7 @@ table_part_mix = Table(0x0F, [
     Row("RESERVED 10", Rel.ONE, Range(0x00, 0x7F))
 ])
 
-table_rhythm_step_seq = Table(0x66, [
+table_rhythm_step_seq = Table(Tables.RhythmStepSeq, 0x66, [
     Row("RESERVED 1", Rel.ONE, Range(0x00, 0x7F)),
     Row("RESERVED 2", Rel.ONE, Range(0x00, 0x7F)),
     Row("RESERVED 3", Rel.ONE, Range(0x00, 0x7F)),
@@ -249,7 +249,7 @@ sixteen("Step Seq Gate Time", Rel.MSB, Range(0x00, 0x07)) +\
 sixteen("Step Seq Mute", Rel.ONE, Options(0x00, 0x01))
 )
 
-table_song = Table(0x0B, [
+table_song = Table(Tables.Song, 0x0B, [
     # TODO range for all these 2-bytes
     Row("Pattern Num", Rel.MSB, Range(0x00, 0x7F)),
     Row("Pattern Num", Rel.LSB, Range(0x00, 0x7F)),
@@ -264,17 +264,19 @@ table_song = Table(0x0B, [
     Row("Track Mute", Rel.ONE, Multi(Range(0x00, 0x0F), Options(0x7F))),
 ])
 
-table_map = {
-    Tables.VoiceCommon1: table_voice_common_1,
-    Tables.VoiceCommon2: table_voice_common_2,
-    Tables.VoiceScene: table_voice_scene,
-    Tables.VoiceFreeEG: table_voice_free_eg,
-    Tables.VoiceStepSeq: table_voice_step_seq,
-    Tables.Effect: table_effect,
-    Tables.PartMix: table_part_mix,
-    Tables.RhythmStepSeq: table_rhythm_step_seq,
-    Tables.Song: table_song
-}
+table_map = dict(
+    (t.name, t) for t in [
+        table_voice_common_1,
+        table_voice_common_2,
+        table_voice_scene,
+        table_voice_free_eg,
+        table_voice_step_seq,
+        table_effect,
+        table_part_mix,
+        table_rhythm_step_seq,
+        table_song
+    ]
+)
 
 def check_tables(table_map):
     for (k, v) in table_map.items():
@@ -314,6 +316,28 @@ def get_anno_table(model_id, hi, mid, low):
         elif hi in range(0x70, 0x80):
             anno = { Tag.SONG: (hi & 0x0F), Tag.MEASURE: (mid + 0x7F) }
             return AnnoTable(anno, table_map[Tables.Song])
+    return None
+
+def get_address(anno_table):
+    name = anno_table.table.name
+    if name == Tables.VoiceCommon1:
+        return (0x62, 0x20, anno_table.anno[Tag.PATTERN], 0x00)
+    elif name == Tables.VoiceCommon2:
+        return (0x62, 0x21, anno_table.anno[Tag.PATTERN], 0x00)
+    elif name == Tables.VoiceScene:
+        pass # TODO
+    elif name == Tables.VoiceFreeEG:
+        pass
+    elif name == Tables.VoiceStepSeq:
+        pass
+    elif name == Tables.RhythmStepSeq:
+        pass
+    elif name == Tables.Effect:
+        pass
+    elif name == Tables.PartMix:
+        pass
+    elif name == Tables.Song:
+        pass
     return None
 
 def message_to_anno_data(m):

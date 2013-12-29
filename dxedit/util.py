@@ -30,3 +30,12 @@ def all_none(*xs):
 def all_not_none(*xs):
     return all(x is not None for x in xs)
 
+# return (msb, lsb) byte count for data of length l
+def split_bytes(l):
+    lsb = l & 0x7F
+    msb = l >> 7
+    return (msb, lsb)
+
+def join_bytes(a, b):
+    return (a << 7) | b
+

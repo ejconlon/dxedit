@@ -3,15 +3,6 @@ from .enums import *
 from .util import *
 from .lookups import *
 
-# return (msb, lsb) byte count for data of length l
-def split_bytes(l):
-    lsb = l & 0x7F
-    msb = l >> 7
-    return (msb, lsb)
-
-def join_bytes(a, b):
-    return (a << 7) | b
-
 def check_count(pseq):
     msb = lookup(B.byte_count_msb, pseq[1])
     lsb = lookup(B.byte_count_lsb, pseq[1])
