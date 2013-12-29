@@ -63,7 +63,7 @@ def printhex(*arrs):
     print(s)
 
 if __name__ == "__main__":
-    seqs = read_seqs('DX7Class.syx')
+    seqs = read_seqs('Mine.syx')
     pseqs = parse_seqs(seqs)
     check_pseqs(pseqs)
     #print_pseqs(pseqs)

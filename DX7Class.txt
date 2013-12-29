@@ -1,0 +1,128 @@
+1	EPiano
+2	Muted EPiano
+3	Brass EPiano
+4	Chorus EPiano
+5	Bass EPiano
+6	Pluck EPiano
+7	Sustain EPiano
+8	Big Bass
+9	Rich Lead
+10	Brash Pluck
+11	Thin Pluck
+12	Echo Bells
+13	Wooden Pluck
+14	Clean Bells
+15	Syrup EPiano
+16	Clean Organ
+17	Key Noise Organ
+18	Cloudy Organ
+19	Lower Moving Organ
+20	Higher Moving Organ
+21	Simple Clav
+22	Pluck Lead
+23	Pluck Bass
+24	Fat Pluck Bass
+25	Fat Decay Bass
+26	Pluck Guitar
+27	Digital Strings
+28	Twin Peaks Strings
+29	Zap Fill Lead
+30	Big Mouth Bass
+31	Big Mouth Lead
+32	Cool Woodwind Strings
+33	Clean Bass
+34	Space Strings
+35	Clean Lead
+36	Vibrato Brass
+37	Baby Brass
+38	Underwater Brass Strings
+39	Alien Abduction Strings
+40	Alien Singing Strings
+41	Digital Pad
+42	Buzz Pad
+43	Rubbing Bells
+44	Movie Orchestra
+45	Pluck Sustain
+46	Pluck Mute
+47	Little Mouth Pad
+48	Hype Pad
+49	Theremin Stab
+50	Hypno Pad
+51	Thin Bells
+52	Future Jingle Lead
+53	Haunting Whistle
+54	Ghost Strings
+55	Sunrise Pad
+56	UV Pad
+57	Ping Pong Bells
+58	Hammered Bells
+59	Unhammered Bells
+60	Classic Bell Lead
+61	Low Power Chords
+62	Spark Lead
+63	Music Box
+64	Steel Drum
+65	Harpsichord
+66	Power Harpsichord
+67	Tinny Lead
+68	Bell EPiano
+69	Metal EPiano
+70	Gold EPiano
+71	Thumb EPiano
+72	Casio EPiano
+73	Cheez Ding EPiano
+74	Sugar Hammer EPiano
+75	Mini Pad
+76	Square Lead
+77	Harsh Clav
+78	Bigger Clav
+79	No-click Clav
+80	Haunted Clav
+81	Punchy Bells
+82	Harmonic Punchy Bells
+83	More Wood
+84	Higher Wood
+85	Ding along
+86	Sour Face
+87	Tiniest Dings
+88	Soft Tiny Dings
+89	Another Organ
+90	Richer Organ
+91	Richest Organ
+92	Too Rich Organ
+93	Still Organ
+94	Church Organ
+95	Synth Organ
+96	Synth Accordian
+97	Synth Harmonica
+98	Hard Pluck Guitar
+99	Hard Pluck Clav
+100	Hard Unpluck Clav
+101	Quick Mute Guitar
+102	Brash Weather Bass
+103	Fat Weather Bass
+104	Mallet EPiano
+105	Shock Bass
+106	Clean Big Bass
+107	Clean Bigger Bass
+108	Sunrise Bass
+109	Pull Guitar
+110	Wide Bass
+111	Threat Bass
+112	Filling Bass
+113	Tin Pan Bass
+114	Shapeless Bass
+115	Shaped Bass
+116	Rounded Strings
+117	Brighter Strings
+118	Two Tone Synth Strings
+119	Two Tone Brash Lead
+120	Breathing Pad
+121	Gladiatrix Pad
+122	Buzz Pad
+123	Wop Pad
+124	Jousting Lead
+125	Buzzing
+126	Gentle Pad
+127	Silly Digital
+128	Snake Charmer Lead

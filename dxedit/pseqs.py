@@ -4,10 +4,13 @@ from .util import *
 from .lookups import *
 
 # return (msb, lsb) byte count for data of length l
-def make_count_bytes(l):
+def split_bytes(l):
     lsb = l & 0x7F
     msb = l >> 7
     return (msb, lsb)
+
+def join_bytes(a, b):
+    return (a << 7) | b
 
 def check_count(pseq):
     msb = lookup(B.byte_count_msb, pseq[1])
@@ -15,9 +18,9 @@ def check_count(pseq):
     data = lookup(B.data, pseq[1])
     if data is not None and all_not_none(msb, lsb):
         l = len(data)
-        s = msb[0] << 7 | lsb[0]
+        s = join_bytes(msb[0], lsb[0])
         assert l == s
-        bs = make_count_bytes(s)
+        bs = split_bytes(s)
         assert msb[0] == bs[0]
         assert lsb[0] == bs[1]
     else:
@@ -51,30 +54,10 @@ def check_checksum(pseq):
     else:
         assert actual == expected[0]
 
-def get_table_by_pseq(pseq):
-    if pseq[0] == T.dx200_native_bulk_dump:
-        model_id = lookup(B.model_id, pseq[1])
-        high = lookup(B.addr_high, pseq[1])
-        mid = lookup(B.addr_mid, pseq[1])
-        low = lookup(B.addr_low, pseq[1])
-        assert all_not_none(model_id, high, mid, low)
-        return get_table(model_id[0], high[0], mid[0], low[0])
-    else:
-        return None
-
 def check_tables(pseq):
     if pseq[0] == T.dx200_native_bulk_dump:
-        anno_table = get_table_by_pseq(pseq)
-        if anno_table == None:
-            print(pseq)
-            raise Exception('no table')
-        else:
-            data = lookup(B.data, pseq[1])
-            assert len(data) == anno_table.table.size
-            parsed = parse_data(data, anno_table.table)
-            unparsed = unparse_data(parsed, anno_table.table)
-            if data != unparsed:
-                print(data)
-                print(unparsed)
-                raise Exception("not equal")
+        message = pseq_to_message(pseq)
+        assert message is not None
+        anno_data = message_to_anno_data(message)
+        assert anno_data is not None
 

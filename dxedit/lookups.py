@@ -2,6 +2,8 @@
 # Range(name, Range(low, high)]
 from collections import namedtuple, defaultdict, OrderedDict
 from .enum import Enum
+from .enums import *
+from .util import lookup, all_not_none
 
 # what is the byte relation? Single byte quantity, msb, lsb?
 class Rel(Enum):
@@ -62,6 +64,10 @@ Row = namedtuple('Row', 'name rel range')
 Table = namedtuple('Table', 'size rows')
 
 AnnoTable = namedtuple('AnnoTable', 'anno table')
+
+AnnoData = namedtuple('AnnoData', 'anno_table parsed')
+
+Message = namedtuple('Message', 'model_id high mid low data')
 
 table_voice_common_1 = Table(0x29, [
     Row("Distortion: Off/On", Rel.ONE, Options(0x00, 0x01)),
@@ -277,7 +283,7 @@ def check_tables(table_map):
 
 check_tables(table_map)
 
-def get_table(model_id, hi, mid, low):
+def get_anno_table(model_id, hi, mid, low):
     if low != 0:
         return None
     if model_id == 0x62:
@@ -310,7 +316,14 @@ def get_table(model_id, hi, mid, low):
             return AnnoTable(anno, table_map[Tables.Song])
     return None
 
-def parse_data(data, table):
+def message_to_anno_data(m):
+    anno_table = get_anno_table(m.model_id, m.high, m.mid, m.low)
+    if anno_table is not None:
+        parsed = data_to_parsed(m.data, anno_table.table)
+        return AnnoData(anno_table, parsed)
+    return None
+
+def data_to_parsed(data, table):
     assert len(data) == table.size
     d = defaultdict(dict)
     for (row, byte) in zip(table.rows, data):
@@ -332,7 +345,7 @@ def parse_data(data, table):
             raise Exception("invalid")
     return e
 
-def unparse_data(parsed, table):
+def parsed_to_data(parsed, table):
     data = []
     for row in table.rows:
         assert row.name in parsed
@@ -345,4 +358,19 @@ def unparse_data(parsed, table):
         data.append(value)
     assert len(data) == table.size
     return data
+
+def pseq_to_message(pseq):
+    if pseq[0] == T.dx200_native_bulk_dump:
+        model_id = lookup(B.model_id, pseq[1])
+        high = lookup(B.addr_high, pseq[1])
+        mid = lookup(B.addr_mid, pseq[1])
+        low = lookup(B.addr_low, pseq[1])
+        data = lookup(B.data, pseq[1])
+        assert all_not_none(model_id, high, mid, low, data)
+        return Message(model_id[0], high[0], mid[0], low[0], data)
+    else:
+        return None
+
+def message_to_pseq(m):
+    raise Exception("TODO")
 
