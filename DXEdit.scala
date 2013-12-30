@@ -1,6 +1,11 @@
 
 object DXEdit {
 
+  // Import into SMALL SCOPES to avoid toByte'ing all the literal bytes there
+  object ImplicitIntToByte {
+    implicit def intToByte(int: Int): Byte = int.toByte
+  }
+
   case object TodoException extends RuntimeException
 
   type Try[A] = Either[Throwable, A]
@@ -83,11 +88,12 @@ object DXEdit {
   }
 
   object Constants {
-    val START_TAG: Byte = 0xF0.toByte
-    val END_TAG: Byte = 0xF7.toByte
-    val YAMAHA_MFR_ID: Byte = 0x43.toByte
-    val SYSTEM1_MODEL_ID: Byte = 0x62.toByte
-    val SYSTEM2_MODEL_ID: Byte = 0x6D.toByte
+    import ImplicitIntToByte._
+    val START_TAG: Byte = 0xF0
+    val END_TAG: Byte = 0xF7
+    val YAMAHA_MFR_ID: Byte = 0x43
+    val SYSTEM1_MODEL_ID: Byte = 0x62
+    val SYSTEM2_MODEL_ID: Byte = 0x6D
   }
 
   import FrameType._
@@ -208,7 +214,57 @@ object DXEdit {
   }
 
   object SecondPass {
-    lazy val tables: Seq[DataTable] = Seq()
+    import ImplicitIntToByte._
+    import ByteRange._
+
+    lazy val tables: Seq[DataTable] = Seq(
+      DataTable(
+        VOICE_COMMON_1, 0x29,
+        Seq(
+          ("Distortion: Off/On", ONE, Discrete(Set(0x00, 0x01))),
+          ("Distortion: Drive", ONE, Interval(0x00, 0x64)),
+          ("Distortion: AMP Type", ONE, Interval(0x00, 0x03)),
+          ("Distortion: LPF Cutoff", ONE, Interval(0x22, 0x3C)),
+          ("Distortion: Out Level", ONE, Interval(0x00, 0x64)),
+          ("Distortion: Dry/Wet", ONE, Interval(0x01, 0x7F)),
+          ("2-Band EQ Low Freq", ONE, Interval(0x04, 0x28)),
+          ("2-Band EQ Low Gain", ONE, Interval(0x34, 0x4C)),
+          ("2-Band EQ Mid Freq", ONE, Interval(0x0E, 0x36)),
+          ("2-Band EQ Mid Gain", ONE, Interval(0x34, 0x4C)),
+          ("2-Band EQ Mid Resonance(Q)", ONE, Interval(0x0A, 0x78)),
+          ("RESERVED 1", ONE, Interval(0x00, 0x7F)),
+          ("Filter Cutoff", ONE, Interval(0x00, 0x7F)),
+          ("Filter Resonance(Q)", ONE, Interval(0x00, 0x74)),
+          ("Filter Type", ONE, Interval(0x00, 0x05)),
+          ("Filter Cutoff Scaling Depth", ONE, Interval(0x00, 0x7F)),
+          ("Filter Cutoff Modulation Depth", ONE, Interval(0x00, 0x63)),
+          ("Filter Input Gain", ONE, Interval(0x34, 0x4C)),
+          ("FEG Attack", ONE, Interval(0x00, 0x7F)),
+          ("FEG Decay", ONE, Interval(0x00, 0x7F)),
+          ("FEG Sustain", ONE, Interval(0x00, 0x7F)),
+          ("FEG Release", ONE, Interval(0x00, 0x7F)),
+          ("FEG Depth", ONE, Interval(0x00, 0x7F)),
+          ("FEG Depth Velocity Sense", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 2", ONE, Interval(0x00, 0x7F)),
+          ("Noise OSC Type", ONE, Interval(0x00, 0x0F)),
+          ("Mixer Voice Level", ONE, Interval(0x00, 0x7F)),
+          ("Mixer Noise Level", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 1 Harmonic", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 2 Harmonic", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 3 Harmonic", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 1 FM Depth", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 2 FM Depth", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 3 FM Depth", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 1 EG Decay", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 2 EG Decay", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 3 EG Decay", ONE, Interval(0x00, 0x7F)),
+          ("AEG Attack", ONE, Interval(0x00, 0x7F)),
+          ("AEG Decay", ONE, Interval(0x00, 0x7F)),
+          ("AEG Sustain", ONE, Interval(0x00, 0x7F)),
+          ("AEG Release", ONE, Interval(0x00, 0x7F))
+        )
+      )
+    )
   }
 
   case class Address(modelId: Byte, high: Byte, mid: Byte, low: Byte)
