@@ -84,7 +84,7 @@ object DXEdit {
     val EFFECT = Value
     val PART_MIX = Value
     val RHYTHM_STEP_SEQ = Value
-    val SONG = Value
+    val SONG_DATA = Value
   }
 
   object Constants {
@@ -123,7 +123,7 @@ object DXEdit {
       override def size: Int = set.size
     }
 
-    case class Union(a: Range, b: Range) extends ByteRange {
+    case class Union(a: ByteRange, b: ByteRange) extends ByteRange {
       override def contains(byte: Byte): Boolean =
         a.contains(byte) || b.contains(byte)
       override def size: Int = a.size + b.size
@@ -371,6 +371,21 @@ object DXEdit {
         sixteen("Step Seq Pitch", ONE, anySeven) ++
         sixteen("Step Seq Gate Time", MSB, Interval(0x00, 0x07)) ++
         sixteen("Step Seq Mute", ONE, onOff)
+      ),
+      DataTable(SONG_DATA, 0x0B,
+        Seq(
+          ("Pattern Num", MSB, anySeven),
+          ("Pattern Num", LSB, anySeven),
+          ("BPM", MSB, anySeven),
+          ("BPM", LSB, anySeven),
+          ("Play FX Gate Time", MSB, anySeven),
+          ("Play FX Gate Time", LSB, anySeven),
+          ("Beat", ONE, Discrete(Set(0x00, 0x01, 0x02, 0x03, 0x7F))),
+          ("Swing", ONE, Union(Interval(0x32, 0x53), Discrete(Set(0x7F)))),
+          ("Pitch", ONE, Union(Interval(0x28, 0x58), Discrete(Set(0x7F)))),
+          ("Loop Type", ONE, Discrete(Set(0x00, 0x01, 0x7F))),
+          ("Track Mute", ONE, Union(Interval(0x00, 0x0F), Discrete(Set(0x7F))))
+        )
       )
     )
 
