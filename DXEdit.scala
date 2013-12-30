@@ -306,6 +306,37 @@ object DXEdit {
         )
       )
     )
+
+    private[this] def trackParams: Seq[DataRow] =
+      (for {
+        i <- 1 until (4 + 1)
+      } yield {
+        Seq(
+          ("Free EG Track Param "+i, ONE, Interval(0x00, 0x1F)),
+          ("Free EG Track Scene Switch "+i, ONE, Discrete(Set(0x00, 0x01)))
+        )
+      }).flatten
+
+    private[this] def trackDatas: Seq[DataRow] =
+      (for {
+        i <- 1 until (4 + 1)
+      } yield {
+        (for {
+          j <- 1 until (192 + 1)
+        } yield {
+          Seq(
+            ("Free EG Track "+i+" Data "+j, MSB, Interval(0x00, 0x01)),
+            ("Free EG Track "+i+" Data "+j, LSB, Interval(0x00, 0x7F))
+          )
+        }).flatten
+      }).flatten
+
+    private[this] def sixteen(name: String, rel: RelType, range: ByteRange): Seq[DataRow] =
+      for {
+        i <- 1 until (16 + 1)
+      } yield {
+        (name+" "+i, ONE, range)
+      }
   }
 
   case class Address(modelId: Byte, high: Byte, mid: Byte, low: Byte)
