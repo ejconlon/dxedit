@@ -263,6 +263,47 @@ object DXEdit {
           ("AEG Sustain", ONE, Interval(0x00, 0x7F)),
           ("AEG Release", ONE, Interval(0x00, 0x7F))
         )
+      ),
+      DataTable(VOICE_COMMON_2, 0x05,
+        Seq(
+          ("Modulator Select", ONE, Interval(0x00, 0x03)),
+          ("Scene Control", ONE, Interval(0x00, 0x7F)),
+          ("Common Tempo", MSB, Interval(0x00, 0x4A)),
+          ("Common Tempo", LSB, Interval(0x00, 0x7F)),
+          ("Play Effect Swing", ONE, Interval(0x32, 0x53))
+        )
+      ),
+      DataTable(VOICE_SCENE, 0x1C,
+        Seq(
+          ("Filter Cutoff", ONE, Interval(0x00, 0x7F)),
+          ("Filter Resonance(Q)", ONE, Interval(0x00, 0x74)),
+          ("FEG Attack", ONE, Interval(0x00, 0x7F)),
+          ("FEG Decay", ONE, Interval(0x00, 0x7F)),
+          ("FEG Sustain", ONE, Interval(0x00, 0x7F)),
+          ("FEG Release", ONE, Interval(0x00, 0x7F)),
+          ("FEG Depth", ONE, Interval(0x00, 0x7F)),
+          ("Filter Type", ONE, Interval(0x00, 0x05)),
+          ("LFO Speed", ONE, Interval(0x00, 0x63)),
+          ("Portamento Time", ONE, Interval(0x00, 0x63)),
+          ("Mixer Noise Level", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 1 Harmonic", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 2 Harmonic", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 3 Harmonic", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 1 FM Depth", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 2 FM Depth", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 3 FM Depth", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 1 EG Decay", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 2 EG Decay", ONE, Interval(0x00, 0x7F)),
+          ("Modulator 3 EG Decay", ONE, Interval(0x00, 0x7F)),
+          ("AEG Attack", ONE, Interval(0x00, 0x7F)),
+          ("AEG Decay", ONE, Interval(0x00, 0x7F)),
+          ("AEG Sustain", ONE, Interval(0x00, 0x7F)),
+          ("AEG Release", ONE, Interval(0x00, 0x7F)),
+          ("Volume", ONE, Interval(0x00, 0x7F)),
+          ("Pan", ONE, Interval(0x00, 0x7F)),
+          ("Effect Send", ONE, Interval(0x00, 0x7F)),
+          ("Effect Parameter", ONE, Interval(0x00, 0x7F))
+        )
       )
     )
   }
