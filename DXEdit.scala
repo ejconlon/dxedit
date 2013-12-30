@@ -312,6 +312,22 @@ object DXEdit {
           ("Free EG Length", ONE, Interval(0x02, 0x60)),
           ("Free EG Keyboard Track", ONE, Interval(0x00, 0x7F))
         ) ++ trackParams ++ trackDatas
+      ),
+      DataTable(VOICE_STEP_SEQ, 0x66,
+        Seq(
+          ("Step Seq Base Unit", ONE, Discrete(Set(0x04, 0x06, 0x07))),
+          ("Step Seq Length", ONE, Discrete(Set(0x08, 0x0C, 0x10))),
+          ("RESERVED 1", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 2", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 3", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 4", ONE, Interval(0x00, 0x7F))
+        ) ++
+        sixteen("Step Seq Note", ONE, Interval(0x00, 0xF7)) ++
+        sixteen("Step Seq Velocity", ONE, Interval(0x00, 0xF7)) ++
+        sixteen("Step Seq Gate Time", LSB, Interval(0x00, 0xF7)) ++
+        sixteen("Step Seq Control Change", ONE, Interval(0x00, 0xF7)) ++
+        sixteen("Step Seq Gate Time", MSB, Interval(0x00, 0xF7)) ++
+        sixteen("Step Seq Mute", ONE, Discrete(Set(0x00, 0x01)))
       )
     )
 
