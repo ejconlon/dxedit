@@ -328,6 +328,33 @@ object DXEdit {
         sixteen("Step Seq Control Change", ONE, Interval(0x00, 0xF7)) ++
         sixteen("Step Seq Gate Time", MSB, Interval(0x00, 0xF7)) ++
         sixteen("Step Seq Mute", ONE, Discrete(Set(0x00, 0x01)))
+      ),
+      DataTable(EFFECT, 0x03,
+        Seq(
+          // See effect lookup table
+          ("Effect Type", MSB, Discrete(Set(0x00, 0x01, 0x02, 0x03))),
+          ("Effect Type", LSB, Discrete(Set(0x00, 0x01, 0x02, 0x03))),
+          ("Effect Parameter", ONE, Interval(0x00, 0x7F))
+        )
+      ),
+      DataTable(PART_MIX, 0x0F,
+        Seq(
+          ("RESERVED 1", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 2", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 3", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 4", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 5", ONE, Interval(0x00, 0x7F)),
+          ("Volume", ONE, Interval(0x00, 0x7F)),
+          ("Pan", ONE, Interval(0x00, 0x7F)),
+          ("Effect 1 Send", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 6", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 7", ONE, Interval(0x00, 0x7F)),
+          ("Filter Cutoff Frequency", ONE, Interval(0x00, 0x7F)),
+          ("Filter Resonance", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 8", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 9", ONE, Interval(0x00, 0x7F)),
+          ("RESERVED 10", ONE, Interval(0x00, 0x7F))
+        )
       )
     )
 
