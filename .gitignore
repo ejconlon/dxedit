@@ -8,3 +8,5 @@ target/*
 *.swo
 *.swp
 *~
+*.iml
+.idea
