@@ -61,16 +61,16 @@ object DXEdit {
     val LSB = Value
   }
 
-  object TagType extends Enumeration {
-    type TagType = Value
+  object AnnoType extends Enumeration {
+    type AnnoType = Value
     val PATTERN = Value
     val PART = Value
     val SONG = Value
     val MEASURE = Value
   }
 
-  object TableType extends Enumeration {
-    type TableType = Value
+  object DataType extends Enumeration {
+    type DataType = Value
     val VOICE_COMMON_1 = Value
     val VOICE_COMMON_2 = Value
     val VOICE_SCENE = Value
@@ -95,16 +95,45 @@ object DXEdit {
   import CountType._
   import RepeatType._
   import RelType._
-  import TagType._
-  import TableType._
+  import AnnoType._
+  import DataType._
 
   case class LookupTable[N, Row](name: N, sizeForCheck: Int, rows: Seq[Row])
 
+  trait ByteRange {
+    def contains(byte: Byte): Boolean
+    def size: Int
+  }
+
+  object ByteRange {
+    case class Interval(start: Byte, end: Byte) extends ByteRange {
+      override def contains(byte: Byte): Boolean =
+        byte >= start && byte <= end
+      override def size: Int = (end - start).toInt
+    }
+
+    case class Discrete(set: Set[Byte]) extends ByteRange {
+      override def contains(byte: Byte): Boolean = set.contains(byte)
+      override def size: Int = set.size
+    }
+
+    case class Union(a: Range, b: Range) extends ByteRange {
+      override def contains(byte: Byte): Boolean =
+        a.contains(byte) || b.contains(byte)
+      override def size: Int = a.size + b.size
+    }
+  }
+
   type ByteMatcher = Byte => Try[Byte]
-  type FrameMatcher = Frame => Try[PSeq]
+
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
   type FrameTable = LookupTable[FrameType, FrameRow]
   val FrameTable = LookupTable
+
+  type DataRow = (String, RelType, ByteRange)
+  type DataTable = LookupTable[DataType, DataRow]
+  val DataTable = LookupTable
+
 
   object ByteMatchers {
     def matchEquals(byte: Byte): ByteMatcher = throw TodoException
@@ -113,7 +142,7 @@ object DXEdit {
     def matchOneOf(a: ByteMatcher, b: ByteMatcher): ByteMatcher = throw TodoException
   }
 
-  object Messages {
+  object FirstPass {
     import ByteMatchers._
     import Constants._
 
@@ -176,6 +205,10 @@ object DXEdit {
         )
       )
     )
+  }
+
+  object SecondPass {
+    lazy val tables: Seq[DataTable] = Seq()
   }
 
   case class Address(modelId: Byte, high: Byte, mid: Byte, low: Byte)
