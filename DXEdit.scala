@@ -304,6 +304,14 @@ object DXEdit {
           ("Effect Send", ONE, Interval(0x00, 0x7F)),
           ("Effect Parameter", ONE, Interval(0x00, 0x7F))
         )
+      ),
+      DataTable(VOICE_FREE_EG, 0x60C,
+        Seq(
+          ("Free EG Trigger", ONE, Interval(0x00, 0x03)),
+          ("Free EG Loop Type", ONE, Interval(0x00, 0x04)),
+          ("Free EG Length", ONE, Interval(0x02, 0x60)),
+          ("Free EG Keyboard Track", ONE, Interval(0x00, 0x7F))
+        ) ++ trackParams ++ trackDatas
       )
     )
 
