@@ -1,3 +1,4 @@
+package net.exathunk.dxedit
 
 object DXEdit {
 
