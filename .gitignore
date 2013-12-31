@@ -8,3 +8,5 @@ __pycache__
 *~
 *.iml
 .idea
+project/project
+target
