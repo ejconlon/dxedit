@@ -3,12 +3,9 @@ package net.exathunk.dxedit
 object FirstPass {
   import ByteMatchers._
   import Constants._
-  import net.exathunk.dxedit.Constants
-  import net.exathunk.dxedit.Constants._
-  import net.exathunk.dxedit.FrameType._
-  import net.exathunk.dxedit.RepeatType._
-  import net.exathunk.dxedit.SubFrameType._
-
+  import FrameType._
+  import RepeatType._
+  import SubFrameType._
 
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
   type FrameTable = LookupTable[FrameType, FrameRow]
