@@ -1,9 +1,7 @@
 __pycache__
 *.pyc
-dxedit/__pycache__
-dxedit/*.pyc
 *.class
-target/*
+**/target/
 *.log
 *.swo
 *.swp
