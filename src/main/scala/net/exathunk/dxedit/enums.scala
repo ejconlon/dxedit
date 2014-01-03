@@ -9,6 +9,7 @@ object FrameType extends Enumeration {
   val DX_PARAM_CHANGE = Value
 }
 
+// NOTE: The ordering of this table is important to PSeq.toFrame
 object SubFrameType extends Enumeration {
   type SubFrameType = Value
   val SYSEX_START = Value
@@ -16,16 +17,16 @@ object SubFrameType extends Enumeration {
   val MFR_ID = Value
   val DEVICE_NUM = Value
   val MODEL_ID = Value
-  val CHECKSUM = Value
+  val PARAMETER_GROUP_NUM = Value
+  val PARAMETER_NUM = Value
+  val FORMAT_NUM = Value
+  val BYTE_COUNT_MSB = Value
+  val BYTE_COUNT_LSB = Value
   val ADDR_HIGH = Value
   val ADDR_MID = Value
   val ADDR_LOW = Value
   val DATA = Value
-  val PARAMETER_GROUP_NUM = Value
-  val PARAMETER_NUM = Value
-  val BYTE_COUNT_MSB = Value
-  val BYTE_COUNT_LSB = Value
-  val FORMAT_NUM = Value
+  val CHECKSUM = Value
 }
 
 object CountType extends Enumeration {

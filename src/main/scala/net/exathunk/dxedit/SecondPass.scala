@@ -1,11 +1,18 @@
 package net.exathunk.dxedit
 
-object SecondPass {
+import scala.util.Try
+
+object SecondPass extends DXEdit.Pass[DXEdit.PSeq, DXEdit.AnnoData] {
   import ImplicitIntToByte._
   import ByteRange._
 
   import DataType._
   import RelType._
+
+  override def runPass(pseq: DXEdit.PSeq): Try[DXEdit.AnnoData] = {
+    throw TodoException
+  }
+  override def validate = for { table <- tables } table.validate
 
   type DataRow = (String, RelType, ByteRange)
   type DataTable = LookupTable[DataType, DataRow]

@@ -7,7 +7,9 @@ package object dxedit {
   type Data = Seq[Byte]
   type ByteMatcher = Byte => Option[Byte]
 
-  case class LookupTable[N, Row](name: N, size: Int, rows: Seq[Row])
+  case class LookupTable[N, Row](name: N, size: Int, rows: Seq[Row]) {
+    def validate = assert(size == rows.size)
+  }
 
   case object TodoException extends RuntimeException
 
@@ -16,5 +18,15 @@ package object dxedit {
     implicit def intToByte(int: Int): Byte = int.toByte
   }
 
+  def singleton[T](xs: Seq[T]): Option[T] = if (xs.size == 1) Some(xs(0)) else None
+
+  def splitBytes(count: Int): (Byte, Byte) = {
+    assert(count < (1 << 14))
+    ((count >> 7).toByte, (count & 0x7F).toByte)
+  }
+
+  def joinBytes(msb: Byte, lsb: Byte): Byte = {
+    ((msb << 7) | lsb).toByte
+  }
 }
 

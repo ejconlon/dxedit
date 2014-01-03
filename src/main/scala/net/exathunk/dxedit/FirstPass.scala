@@ -1,11 +1,19 @@
 package net.exathunk.dxedit
 
-object FirstPass {
+import scala.util.Try
+
+object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
   import ByteMatchers._
   import Constants._
   import FrameType._
   import RepeatType._
   import SubFrameType._
+
+  override def runPass(frame: Frame): Try[DXEdit.PSeq] = {
+    throw TodoException
+  }
+
+  override def validate = for { table <- tables } table.validate
 
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
   type FrameTable = LookupTable[FrameType, FrameRow]
