@@ -227,4 +227,7 @@ object SecondPass extends DXEdit.Pass[DXEdit.PSeq, DXEdit.AnnoData] {
 
   private[this] def reserved(i: Int): DataRow =
     ("RESERVED "+i, ONE, anySeven)
+
+  lazy val tableMap: Map[DataType, DataTable] =
+    (for { t <- tables } yield { (t.name, t) }).toMap
 }

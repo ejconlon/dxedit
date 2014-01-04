@@ -1,6 +1,7 @@
 package net.exathunk.dxedit
 
 import org.scalatest.FunSuite
+import scala.collection.SortedMap
 import scala.util.{Failure, Success}
 
 class DXEditTest extends FunSuite {
@@ -64,6 +65,9 @@ class DXEditTest extends FunSuite {
     assert(None == m(0x9))
   }
 
+  val dxParamChangeSeq: Seq[Byte] = Seq(
+    0xF0, 0x43, 0x10, 0x19, 0x4D, 0x00, 0xF7)
+
   val dx200NativeBulkDumpSeq: Seq[Byte] = Seq(
     0xF0, 0x43, 0x00, 0x62, 0x00, 0x05, 0x21, 0x7F,
     0x00, 0x03, 0x00, 0x01, 0x0C, 0x32, 0x19, 0xF7)
@@ -86,5 +90,28 @@ class DXEditTest extends FunSuite {
 
     val trailing = dx200NativeBulkDumpSeq ++ Seq[Byte](0xAB)
     assert(Failure(DXEdit.ContiguityException) == DXEdit.extractFrames(trailing))
+  }
+
+  test("validate passes") {
+    FirstPass.validate
+    SecondPass.validate
+  }
+
+  test("parse_seq_with_spec") {
+    val expected: DXEdit.PSeq = DXEdit.PSeq(FrameType.DX_PARAM_CHANGE, SortedMap(
+      (SubFrameType.SYSEX_START -> Seq(0xF0)),
+      (SubFrameType.MFR_ID -> Seq(0x43)),
+      (SubFrameType.DEVICE_NUM -> Seq(0x00)), // match out a leading 0001
+      (SubFrameType.PARAMETER_GROUP_NUM -> Seq(0x19)),
+      (SubFrameType.PARAMETER_NUM -> Seq(0x4D)),
+      (SubFrameType.DATA -> Seq(0x00)),
+      (SubFrameType.SYSEX_END -> Seq(0xF7))
+    ))
+    val frameTable = FirstPass.tableMap(FrameType.DX_PARAM_CHANGE)
+    val actualSuccess = FirstPass.runPassWith(frameTable, dxParamChangeSeq)
+    assert(Success(expected) == actualSuccess)
+
+    // actual_failure = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
+    // self.assertEqual(None, actual_failure)
   }
 }

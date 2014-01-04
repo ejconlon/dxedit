@@ -13,6 +13,10 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
     throw TodoException
   }
 
+  def runPassWith(frameTable: FrameTable, frame: Frame): Try[DXEdit.PSeq] = {
+    throw TodoException
+  }
+
   override def validate = for { table <- tables } table.validate
 
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
@@ -78,4 +82,7 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
       )
     )
   )
+
+  lazy val tableMap: Map[FrameType, FrameTable] =
+    (for { t <- tables } yield { (t.name, t) }).toMap
 }
