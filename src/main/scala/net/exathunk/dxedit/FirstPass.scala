@@ -1,6 +1,8 @@
 package net.exathunk.dxedit
 
-import scala.util.Try
+import scala.collection.SortedMap
+import scala.util.control.Breaks._
+import scala.util.{Failure, Success, Try}
 
 object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
   import ByteMatchers._
@@ -9,15 +11,94 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
   import RepeatType._
   import SubFrameType._
 
+  case class MultiMismatchException(mismatches: Seq[MismatchException]) extends RuntimeException
+  case class MismatchException(subFrameType: SubFrameType, index: Int, byte: Byte) extends RuntimeException
+
   override def runPass(frame: Frame): Try[DXEdit.PSeq] = {
-    throw TodoException
+    val excs = Seq.newBuilder[MismatchException]
+    tables foreach { table =>
+      val t = runPassWith(table, frame)
+      if (t.isFailure) {
+        excs += t.failed.get.asInstanceOf[MismatchException]
+      } else {
+        return t
+      }
+    }
+    Failure(MultiMismatchException(excs.result))
   }
 
   def runPassWith(frameTable: FrameTable, frame: Frame): Try[DXEdit.PSeq] = {
-    throw TodoException
+    val rs = Seq.newBuilder[(SubFrameType, SubFrame)]
+    val spec = frameTable.rows
+    var frameI = 0
+    var specI = 0
+    breakable {
+      while (specI < spec.size) {
+        val section = spec(specI)
+        if (section._2 == RepeatType.MANY) {
+          break
+        } else {
+          val byte: Byte = frame(frameI)
+          val matcher: ByteMatcher = section._3
+          val r: Option[Byte] = matcher(byte)
+          r match {
+            case None => return Failure(MismatchException(section._1, frameI, byte))
+            case Some(b) => rs += ((section._1, Seq(b)))
+          }
+          frameI += 1
+          specI += 1
+        }
+      }
+    }
+    // if we broke early for a many section
+    if (specI < spec.size) {
+      val revRs = Seq.newBuilder[(SubFrameType, SubFrame)]
+      var frameJ = frame.size - 1
+      var specJ = spec.size - 1
+      while (specJ > specI) {
+        val section = spec(specJ)
+        assert(section._2 == RepeatType.ONCE)
+        val byte: Byte = frame(frameJ)
+        val matcher: ByteMatcher = section._3
+        val r: Option[Byte] = matcher(byte)
+        r match {
+          case None => return Failure(MismatchException(section._1, frameJ, byte))
+          case Some(b) => revRs += ((section._1, Seq(b)))
+        }
+        frameJ -= 1
+        specJ -= 1
+      }
+      // now handle the many section
+      assert(specJ == specI)
+      val section = spec(specI)
+      assert(section._2 == RepeatType.MANY)
+      val ds = Seq.newBuilder[Byte]
+      while (frameI <= frameJ) {
+        val byte: Byte = frame(frameI)
+        val matcher: ByteMatcher = section._3
+        val r: Option[Byte] = matcher(byte)
+        r match {
+          case None => return Failure(MismatchException(section._1, frameI, byte))
+          case Some(b) => ds += b
+        }
+        frameI += 1
+      }
+      rs += ((section._1, ds.result))
+      rs ++= revRs.result.reverse
+    }
+
+    val m: SortedMap[SubFrameType, SubFrame] = SortedMap(rs.result: _*)
+    Success(DXEdit.PSeq(frameTable.name, m))
   }
 
-  override def validate = for { table <- tables } table.validate
+  override def validate =
+    for {
+      table <- tables
+    } {
+      val numMany: Int = (table.rows.filter { _._2 == RepeatType.MANY } size)
+      if (numMany > 1) throw new Exception("More than one MANY field: " + table.name)
+      table.validate
+    }
 
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
   type FrameTable = LookupTable[FrameType, FrameRow]

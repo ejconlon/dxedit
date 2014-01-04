@@ -111,7 +111,7 @@ class DXEditTest extends FunSuite {
     val actualSuccess = FirstPass.runPassWith(frameTable, dxParamChangeSeq)
     assert(Success(expected) == actualSuccess)
 
-    // actual_failure = parse_seq_with_spec(self.dx200_native_bulk_dump_seq, spec)
-    // self.assertEqual(None, actual_failure)
+    val actualFailure = FirstPass.runPassWith(frameTable, dx200NativeBulkDumpSeq)
+    assert(Failure(FirstPass.MismatchException(SubFrameType.DEVICE_NUM, 2, 0x00)) == actualFailure)
   }
 }
