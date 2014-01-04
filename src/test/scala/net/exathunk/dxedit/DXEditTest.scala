@@ -97,7 +97,7 @@ class DXEditTest extends FunSuite {
     SecondPass.validate
   }
 
-  test("parse_seq_with_spec") {
+  test("FirstPass no many parse") {
     val expected: DXEdit.PSeq = DXEdit.PSeq(FrameType.DX_PARAM_CHANGE, SortedMap(
       (SubFrameType.SYSEX_START -> Seq(0xF0)),
       (SubFrameType.MFR_ID -> Seq(0x43)),
@@ -113,5 +113,33 @@ class DXEditTest extends FunSuite {
 
     val actualFailure = FirstPass.runPassWith(frameTable, dx200NativeBulkDumpSeq)
     assert(Failure(FirstPass.MismatchException(SubFrameType.DEVICE_NUM, 2, 0x00)) == actualFailure)
+  }
+
+  test("FirstPass many parse") {
+    val expected: DXEdit.PSeq = DXEdit.PSeq(FrameType.DX200_NATIVE_BULK_DUMP, SortedMap(
+      (SubFrameType.SYSEX_START, Seq(0xF0)),
+      (SubFrameType.MFR_ID, Seq(0x43)),
+      (SubFrameType.DEVICE_NUM, Seq(0x00)),
+      (SubFrameType.MODEL_ID, Seq(0x62)),
+      (SubFrameType.BYTE_COUNT_MSB, Seq(0x00)),
+      (SubFrameType.BYTE_COUNT_LSB, Seq(0x05)),
+      (SubFrameType.ADDR_HIGH, Seq(0x21)),
+      (SubFrameType.ADDR_MID, Seq(0x7F)),
+      (SubFrameType.ADDR_LOW, Seq(0x00)),
+      (SubFrameType.DATA, Seq(0x03, 0x00, 0x01, 0x0C, 0x32)),
+      (SubFrameType.CHECKSUM, Seq(0x19)),
+      (SubFrameType.SYSEX_END, Seq(0xF7))
+    ))
+    val frameTable = FirstPass.tableMap(FrameType.DX200_NATIVE_BULK_DUMP)
+    val actualSuccess = FirstPass.runPassWith(frameTable, dx200NativeBulkDumpSeq)
+    assert(Success(expected) == actualSuccess)
+
+    val actualFailure = FirstPass.runPassWith(frameTable, dxParamChangeSeq)
+    assert(Failure(FirstPass.MismatchException(SubFrameType.DEVICE_NUM, 2, 0x10)) == actualFailure)
+  }
+
+  test("FirstPass either") {
+    assert(FirstPass.runPass(dx200NativeBulkDumpSeq).isSuccess)
+    assert(FirstPass.runPass(dxParamChangeSeq).isSuccess)
   }
 }
