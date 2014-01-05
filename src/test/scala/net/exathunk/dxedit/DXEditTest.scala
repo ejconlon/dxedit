@@ -144,5 +144,10 @@ class DXEditTest extends FunSuite {
 
     assert(p.toFrame == Some(dx200NativeBulkDumpSeq))
     assert(q.toFrame == Some(dxParamChangeSeq))
+
+    val pm: Message = p.message.get
+    assert(None == q.message)
+
+    assert(p.replace(pm) == p)
   }
 }

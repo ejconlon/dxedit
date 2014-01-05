@@ -7,21 +7,20 @@ case class Message(address: Address, data: SubFrame) {
   // TODO test
   lazy val checksum: Byte = {
     import ImplicitIntToByte._
-    var s: Int = 1
+    var s: Int = 0
     s += address.high
     s += address.mid
     s += address.low
     s += count._1
     s += count._2
     data.foreach { s += _ }
-    0xFF ^ s & 0x7F
+    ((0xFF ^ s) + 1) & 0x7F
   }
 }
 
 import SubFrameType._
 
 case class PSeq(frameTable: FrameTable, parts: Map[SubFrameType, SubFrame]) {
-  // TODO test
   def toFrame: Option[Frame] = {
     val s = Seq.newBuilder[Byte]
     frameTable.rows foreach { row =>
@@ -48,7 +47,6 @@ case class PSeq(frameTable: FrameTable, parts: Map[SubFrameType, SubFrame]) {
       Message(Address(modelId, high, mid, low), data)
     }
 
-  // TODO test
   def replace(message: Message): PSeq = {
     val m = Map.newBuilder[SubFrameType, SubFrame]
     m ++= parts
