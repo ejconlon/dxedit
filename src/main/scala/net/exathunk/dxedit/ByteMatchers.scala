@@ -3,8 +3,12 @@ package net.exathunk.dxedit
 object ByteMatchers {
   import ImplicitIntToByte._
 
-  def matchAny: ByteMatcher = { x => Some(x) }
-  def matchEquals(byte: Byte): ByteMatcher = { x => if (x == byte) Some(byte) else None }
+  private[this] def mkbm(x: Byte => Option[Byte]): ByteMatcher = ByteMatcher(x, x)
+
+  def matchAny: ByteMatcher = mkbm { x: Byte => Some(x) }
+  def matchEquals(byte: Byte): ByteMatcher =
+    mkbm { x: Byte => if (x == byte) Some(byte) else None }
+
   def matchLike(pattern: String): ByteMatcher = {
     if (pattern.size != 8) throw new Exception("Invalid pattern")
     val m = Seq.newBuilder[(Byte, Boolean)]
@@ -25,17 +29,44 @@ object ByteMatchers {
     }
     val s: Seq[(Byte, Boolean)] = m.result()
 
-    { x: Byte =>
+    val forward = { x: Byte =>
       val matches: Seq[Boolean] = s map { t =>
         val isNonzero = (t._1 & x) != 0
         isNonzero == t._2
       }
-      if (matches forall { x => x }) Some(retMask & x) else None
+      if (matches forall { x => x }) Some[Byte](retMask & x) else None
     }
+
+    val backward = { x: Byte =>
+      if ((~retMask & x) != 0) {
+        None
+      } else {
+        var y = x
+        s foreach { bb =>
+          if (bb._2) {
+            y = y | bb._1
+          } else {
+            y = y & (~bb._1)
+          }
+        }
+        Some(y)
+      }
+    }
+
+    ByteMatcher(forward, backward)
   }
-  def matchSeven: ByteMatcher = { x => if ((x & 0x80) == 0) Some(x) else None }
-  def matchOneOf(a: ByteMatcher, b: ByteMatcher): ByteMatcher = { x =>
-    val y = a(x)
-    if (y.isDefined) y else b(x)
-  }
+  def matchSeven: ByteMatcher =
+    mkbm { x => if ((x & 0x80) == 0) Some(x) else None }
+
+  def matchOneOf(a: ByteMatcher, b: ByteMatcher): ByteMatcher = ByteMatcher(
+    { x =>
+      val y = a.forward(x)
+      if (y.isDefined) y else b.forward(x)
+    },
+    { x =>
+      val y = a.backward(x)
+      if (y.isDefined) y else b.backward(x)
+    }
+  )
+
 }

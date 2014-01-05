@@ -1,33 +1,30 @@
 package net.exathunk.dxedit
 
-import scala.collection.SortedMap
 import scala.util.control.Breaks._
 import scala.util.{Failure, Success, Try}
 
-object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
+object FirstPass extends Pass[Frame, PSeq] {
   import ByteMatchers._
   import Constants._
   import FrameType._
   import RepeatType._
   import SubFrameType._
 
-  case class MultiMismatchException(mismatches: Seq[MismatchException]) extends RuntimeException
-  case class MismatchException(subFrameType: SubFrameType, index: Int, byte: Byte) extends RuntimeException
 
-  override def runPass(frame: Frame): Try[DXEdit.PSeq] = {
-    val excs = Seq.newBuilder[MismatchException]
+  override def runPass(frame: Frame): Try[PSeq] = {
+    val excs = Seq.newBuilder[SubFrameMismatchException]
     tables foreach { table =>
       val t = runPassWith(table, frame)
       if (t.isFailure) {
-        excs += t.failed.get.asInstanceOf[MismatchException]
+        excs += t.failed.get.asInstanceOf[SubFrameMismatchException]
       } else {
         return t
       }
     }
-    Failure(MultiMismatchException(excs.result))
+    Failure(MultiSubFrameMismatchException(excs.result))
   }
 
-  def runPassWith(frameTable: FrameTable, frame: Frame): Try[DXEdit.PSeq] = {
+  def runPassWith(frameTable: FrameTable, frame: Frame): Try[PSeq] = {
     val rs = Seq.newBuilder[(SubFrameType, SubFrame)]
     val spec = frameTable.rows
     var frameI = 0
@@ -40,9 +37,9 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
         } else {
           val byte: Byte = frame(frameI)
           val matcher: ByteMatcher = section._3
-          val r: Option[Byte] = matcher(byte)
+          val r: Option[Byte] = matcher.forward(byte)
           r match {
-            case None => return Failure(MismatchException(section._1, frameI, byte))
+            case None => return Failure(SubFrameMismatchException(section._1, frameI, byte))
             case Some(b) => rs += ((section._1, Seq(b)))
           }
           frameI += 1
@@ -60,9 +57,9 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
         assert(section._2 == RepeatType.ONCE)
         val byte: Byte = frame(frameJ)
         val matcher: ByteMatcher = section._3
-        val r: Option[Byte] = matcher(byte)
+        val r: Option[Byte] = matcher.forward(byte)
         r match {
-          case None => return Failure(MismatchException(section._1, frameJ, byte))
+          case None => return Failure(SubFrameMismatchException(section._1, frameJ, byte))
           case Some(b) => revRs += ((section._1, Seq(b)))
         }
         frameJ -= 1
@@ -76,9 +73,9 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
       while (frameI <= frameJ) {
         val byte: Byte = frame(frameI)
         val matcher: ByteMatcher = section._3
-        val r: Option[Byte] = matcher(byte)
+        val r: Option[Byte] = matcher.forward(byte)
         r match {
-          case None => return Failure(MismatchException(section._1, frameI, byte))
+          case None => return Failure(SubFrameMismatchException(section._1, frameI, byte))
           case Some(b) => ds += b
         }
         frameI += 1
@@ -87,11 +84,11 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
       rs ++= revRs.result.reverse
     }
 
-    val m: SortedMap[SubFrameType, SubFrame] = SortedMap(rs.result: _*)
-    Success(DXEdit.PSeq(frameTable.name, m))
+    val m: Map[SubFrameType, SubFrame] = rs.result.toMap
+    Success(PSeq(frameTable, m))
   }
 
-  override def validate =
+  override def validate: Unit =
     for {
       table <- tables
     } {
@@ -100,9 +97,7 @@ object FirstPass extends DXEdit.Pass[Frame, DXEdit.PSeq] {
       table.validate
     }
 
-  type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
-  type FrameTable = LookupTable[FrameType, FrameRow]
-  val FrameTable = LookupTable
+
 
   lazy val tables: Seq[FrameTable] = Seq(
     FrameTable(

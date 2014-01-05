@@ -13,7 +13,6 @@ object FrameType extends Enumeration {
 object SubFrameType extends Enumeration {
   type SubFrameType = Value
   val SYSEX_START = Value
-  val SYSEX_END = Value
   val MFR_ID = Value
   val DEVICE_NUM = Value
   val MODEL_ID = Value
@@ -27,6 +26,7 @@ object SubFrameType extends Enumeration {
   val ADDR_LOW = Value
   val DATA = Value
   val CHECKSUM = Value
+  val SYSEX_END = Value
 }
 
 object CountType extends Enumeration {

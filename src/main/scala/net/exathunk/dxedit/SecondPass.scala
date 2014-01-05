@@ -2,14 +2,14 @@ package net.exathunk.dxedit
 
 import scala.util.Try
 
-object SecondPass extends DXEdit.Pass[DXEdit.PSeq, DXEdit.AnnoData] {
+object SecondPass extends Pass[PSeq, AnnoData] {
   import ImplicitIntToByte._
   import ByteRange._
 
   import DataType._
   import RelType._
 
-  override def runPass(pseq: DXEdit.PSeq): Try[DXEdit.AnnoData] = {
+  override def runPass(pseq: PSeq): Try[AnnoData] = {
     throw TodoException
   }
   override def validate = for { table <- tables } table.validate

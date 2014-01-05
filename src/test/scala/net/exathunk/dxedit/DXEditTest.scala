@@ -12,25 +12,25 @@ class DXEditTest extends FunSuite {
   import ByteMatchers._
 
   def assertMatchEquals(gold: Byte, test: Byte) {
-    assert(Some(gold) == matchEquals(gold)(test))
+    assert(Some(gold) == matchEquals(gold).forward(test))
   }
   def assertNotMatchEquals(gold: Byte, test: Byte) {
-    assert(None == matchEquals(gold)(test))
+    assert(None == matchEquals(gold).forward(test))
   }
   def assertMatchAny(test: Byte) {
-    assert(Some(test) == matchAny(test))
+    assert(Some(test) == matchAny.forward(test))
   }
   def assertMatchLike(gold: Byte, pattern: String, test: Byte) {
-    assert(Some(gold) == matchLike(pattern)(test))
+    assert(Some(gold) == matchLike(pattern).forward(test))
   }
   def assertNotMatchLike(pattern: String, test: Byte) {
-    assert(None == matchLike(pattern)(test))
+    assert(None == matchLike(pattern).forward(test))
   }
   def assertMatchSeven(test: Byte) {
-    assert(Some(test) == matchSeven(test))
+    assert(Some(test) == matchSeven.forward(test))
   }
   def assertNotMatchSeven(test: Byte) {
-    assert(None == matchSeven(test))
+    assert(None == matchSeven.forward(test))
   }
 
   test("matchEquals") {
@@ -60,9 +60,9 @@ class DXEditTest extends FunSuite {
 
   test("matchOneOf") {
     val m = matchOneOf(matchEquals(0xF), matchEquals(0x0))
-    assert(Some(0xF) == m(0xF))
-    assert(Some(0x0) == m(0x0))
-    assert(None == m(0x9))
+    assert(Some(0xF) == m.forward(0xF))
+    assert(Some(0x0) == m.forward(0x0))
+    assert(None == m.forward(0x9))
   }
 
   val dxParamChangeSeq: Seq[Byte] = Seq(
@@ -75,21 +75,21 @@ class DXEditTest extends FunSuite {
   test("extractFrames") {
     // Extract multiple contiguous frames
     val twoFrames = dx200NativeBulkDumpSeq ++ dx200NativeBulkDumpSeq
-    assert(Success(Seq(dx200NativeBulkDumpSeq, dx200NativeBulkDumpSeq)) == DXEdit.extractFrames(twoFrames))
+    assert(Success(Seq(dx200NativeBulkDumpSeq, dx200NativeBulkDumpSeq)) == FrameExtractor(twoFrames))
 
     // Fail to extract incomplete frame
     val incomplete = dx200NativeBulkDumpSeq.slice(0, dx200NativeBulkDumpSeq.size - 1)
-    assert(Failure(DXEdit.MismatchException) == DXEdit.extractFrames(incomplete))
+    assert(Failure(FrameMismatchException) == FrameExtractor(incomplete))
 
     // Fail to extract non-contiguous frames
     val nonContig = dx200NativeBulkDumpSeq ++ Seq[Byte](0xAB) ++ dx200NativeBulkDumpSeq
-    assert(Failure(DXEdit.ContiguityException) == DXEdit.extractFrames(nonContig))
+    assert(Failure(ContiguityException) == FrameExtractor(nonContig))
 
     val leading = Seq[Byte](0xAB) ++ dx200NativeBulkDumpSeq
-    assert(Failure(DXEdit.ContiguityException) == DXEdit.extractFrames(leading))
+    assert(Failure(ContiguityException) == FrameExtractor(leading))
 
     val trailing = dx200NativeBulkDumpSeq ++ Seq[Byte](0xAB)
-    assert(Failure(DXEdit.ContiguityException) == DXEdit.extractFrames(trailing))
+    assert(Failure(ContiguityException) == FrameExtractor(trailing))
   }
 
   test("validate passes") {
@@ -98,7 +98,8 @@ class DXEditTest extends FunSuite {
   }
 
   test("FirstPass no many parse") {
-    val expected: DXEdit.PSeq = DXEdit.PSeq(FrameType.DX_PARAM_CHANGE, SortedMap(
+    val frameTable = FirstPass.tableMap(FrameType.DX_PARAM_CHANGE)
+    val expected: PSeq = PSeq(frameTable, Map(
       (SubFrameType.SYSEX_START -> Seq(0xF0)),
       (SubFrameType.MFR_ID -> Seq(0x43)),
       (SubFrameType.DEVICE_NUM -> Seq(0x00)), // match out a leading 0001
@@ -107,16 +108,16 @@ class DXEditTest extends FunSuite {
       (SubFrameType.DATA -> Seq(0x00)),
       (SubFrameType.SYSEX_END -> Seq(0xF7))
     ))
-    val frameTable = FirstPass.tableMap(FrameType.DX_PARAM_CHANGE)
     val actualSuccess = FirstPass.runPassWith(frameTable, dxParamChangeSeq)
     assert(Success(expected) == actualSuccess)
 
     val actualFailure = FirstPass.runPassWith(frameTable, dx200NativeBulkDumpSeq)
-    assert(Failure(FirstPass.MismatchException(SubFrameType.DEVICE_NUM, 2, 0x00)) == actualFailure)
+    assert(Failure(SubFrameMismatchException(SubFrameType.DEVICE_NUM, 2, 0x00)) == actualFailure)
   }
 
   test("FirstPass many parse") {
-    val expected: DXEdit.PSeq = DXEdit.PSeq(FrameType.DX200_NATIVE_BULK_DUMP, SortedMap(
+    val frameTable = FirstPass.tableMap(FrameType.DX200_NATIVE_BULK_DUMP)
+    val expected: PSeq = PSeq(frameTable, Map(
       (SubFrameType.SYSEX_START, Seq(0xF0)),
       (SubFrameType.MFR_ID, Seq(0x43)),
       (SubFrameType.DEVICE_NUM, Seq(0x00)),
@@ -130,16 +131,18 @@ class DXEditTest extends FunSuite {
       (SubFrameType.CHECKSUM, Seq(0x19)),
       (SubFrameType.SYSEX_END, Seq(0xF7))
     ))
-    val frameTable = FirstPass.tableMap(FrameType.DX200_NATIVE_BULK_DUMP)
     val actualSuccess = FirstPass.runPassWith(frameTable, dx200NativeBulkDumpSeq)
     assert(Success(expected) == actualSuccess)
 
     val actualFailure = FirstPass.runPassWith(frameTable, dxParamChangeSeq)
-    assert(Failure(FirstPass.MismatchException(SubFrameType.DEVICE_NUM, 2, 0x10)) == actualFailure)
+    assert(Failure(SubFrameMismatchException(SubFrameType.DEVICE_NUM, 2, 0x10)) == actualFailure)
   }
 
-  test("FirstPass either") {
-    assert(FirstPass.runPass(dx200NativeBulkDumpSeq).isSuccess)
-    assert(FirstPass.runPass(dxParamChangeSeq).isSuccess)
+  test("FirstPass runPass and pseq toFrame") {
+    val p: PSeq = FirstPass.runPass(dx200NativeBulkDumpSeq).get
+    val q: PSeq = FirstPass.runPass(dxParamChangeSeq).get
+
+    assert(p.toFrame == Some(dx200NativeBulkDumpSeq))
+    assert(q.toFrame == Some(dxParamChangeSeq))
   }
 }
