@@ -106,8 +106,6 @@ object FirstPass extends Pass[Frame, PSeq] {
       table.validate
     }
 
-
-
   lazy val tables: Seq[FrameTable] = Seq(
     FrameTable(
       DX200_NATIVE_BULK_DUMP, 12,
