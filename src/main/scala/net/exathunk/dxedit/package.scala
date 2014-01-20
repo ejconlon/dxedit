@@ -7,6 +7,8 @@ package object dxedit {
   import FrameType._
   import RepeatType._
   import SubFrameType._
+  import RelType._
+  import DataType._
 
   type Frame = Seq[Byte]
   type SubFrame = Seq[Byte]
@@ -19,6 +21,13 @@ package object dxedit {
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)
   type FrameTable = LookupTable[FrameType, FrameRow]
   val FrameTable = LookupTable
+
+  type DataRow = (String, RelType, ByteRange)
+  type DataTable = LookupTable[DataType, DataRow]
+  val DataTable = LookupTable
+
+  case class AnnoTable(anno: Map[AnnoType.Value, Int], table: DataTable)
+  case class AnnoData(data: Map[String, Int], annoTable: AnnoTable)
 
   object Pass {
     def seq[A, B, C](p: Pass[A, B], q: Pass[B, C]): Pass[A, C] =
@@ -37,9 +46,6 @@ package object dxedit {
 
   case class MultiSubFrameMismatchException(mismatches: Seq[SubFrameMismatchException]) extends RuntimeException
   case class SubFrameMismatchException(subFrameType: SubFrameType, index: Int, byte: Byte) extends RuntimeException
-
-  // TODO fill in
-  case class AnnoData
 
   case class LookupTable[N, Row](name: N, size: Int, rows: Seq[Row]) {
     def validate = assert(size == rows.size)

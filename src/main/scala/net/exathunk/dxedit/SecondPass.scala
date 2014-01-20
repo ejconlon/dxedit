@@ -1,6 +1,6 @@
 package net.exathunk.dxedit
 
-import scala.util.Try
+import scala.util.{Success, Failure, Try}
 
 object SecondPass extends Pass[PSeq, AnnoData] {
   import ImplicitIntToByte._
@@ -10,13 +10,51 @@ object SecondPass extends Pass[PSeq, AnnoData] {
   import RelType._
 
   override def runPass(pseq: PSeq): Try[AnnoData] = {
-    throw TodoException
+    val message = pseq.message
+    if (message.isEmpty) return Failure(new Exception("No message"))
+    val annoTable = message flatMap { m => getAnnoTable(m.address) }
+    if (annoTable.isEmpty) return Failure(new Exception("No table"))
+    parse(message.get, annoTable.get)
   }
-  override def validate = for { table <- tables } table.validate
 
-  type DataRow = (String, RelType, ByteRange)
-  type DataTable = LookupTable[DataType, DataRow]
-  val DataTable = LookupTable
+  private[this] def parse(message: Message, annoTable: AnnoTable): Try[AnnoData] = {
+    if (message.data.size != annoTable.table.rows.size) return Failure(new Exception("Size mismatch"))
+    val m = scala.collection.mutable.Map[String, scala.collection.mutable.Map[RelType.Value, Byte]]()
+    val pairs = annoTable.table.rows zip message.data
+    pairs.foreach { p: (DataRow, Byte) =>
+      val row = p._1
+      val name = row._1
+      val rel = row._2
+      val range = row._3
+      val byte = p._2
+      if (!range.contains(byte)) {
+        return Failure(new Exception("Not in range"))
+      }
+      if (!m.contains(name)) {
+        m(name) = scala.collection.mutable.Map[RelType.Value, Byte]()
+      }
+      m(name)(rel) = byte
+    }
+    val ns = Map.newBuilder[String, Int]
+    m.keys.foreach { k =>
+      val vd = m(k)
+      println(k +" -> "+vd)
+      if (vd.size == 1) {
+        assert(vd.contains(RelType.ONE))
+        ns += (k -> vd(RelType.ONE))
+      } else if (vd.size == 2) {
+        assert(vd.contains(RelType.MSB))
+        assert(vd.contains(RelType.LSB))
+        val v = (vd(RelType.MSB).toInt << 7) | vd(RelType.LSB).toInt
+        ns += (k -> v)
+      } else {
+        return Failure(new Exception("invalid num bytes"))
+      }
+    }
+    Success(AnnoData(ns.result, annoTable))
+  }
+
+  override def validate = for { table <- tables } table.validate
 
   lazy val tables: Seq[DataTable] = Seq(
     DataTable(
@@ -220,6 +258,48 @@ object SecondPass extends Pass[PSeq, AnnoData] {
     } yield {
       (name+" "+i, ONE, range)
     }
+
+  private[this] def getAnnoTable(a: Address): Option[AnnoTable] = {
+    var as = Map.newBuilder[AnnoType.Value, Int]
+    if (a.low != 0) {
+      return None
+    } else if (a.modelId == 0x62) {
+      as += (AnnoType.PATTERN -> a.mid)
+      if (a.high == 0x20) {
+        return Some(AnnoTable(as.result, tableMap(VOICE_COMMON_1)))
+      } else if (a.high == 0x21) {
+        return Some(AnnoTable(as.result, tableMap(VOICE_COMMON_2)))
+      } else if (a.high == 0x40 || a.high == 0x41) {
+        return Some(AnnoTable(as.result, tableMap(VOICE_SCENE)))
+      } else if (a.high >= 0x30 && a.high < 0x40) {
+        return Some(AnnoTable(as.result, tableMap(VOICE_FREE_EG)))
+      } else if (a.high == 0x50) {
+        return Some(AnnoTable(as.result, tableMap(VOICE_STEP_SEQ)))
+      }
+    } else if (a.modelId == 0x6D) {
+      if (a.high >= 0x20 && a.high < 0x30) {
+        as += (AnnoType.PART -> (a.high & 0x0F))
+        as += (AnnoType.PATTERN-> a.mid)
+        return Some(AnnoTable(as.result, tableMap(RHYTHM_STEP_SEQ)))
+      } else if (a.high == 0x30) {
+        as += (AnnoType.PATTERN-> a.mid)
+        return Some(AnnoTable(as.result, tableMap(EFFECT)))
+      } else if (a.high >= 0x40 && a.high < 0x50) {
+        as += (AnnoType.PART -> (a.high & 0x0F))
+        as += (AnnoType.PATTERN-> a.mid)
+        return Some(AnnoTable(as.result, tableMap(PART_MIX)))
+      } else if (a.high >= 0x60 && a.high < 0x70) {
+        as += (AnnoType.SONG-> (a.high & 0x0F))
+        as += (AnnoType.MEASURE -> a.mid)
+        return Some(AnnoTable(as.result, tableMap(SONG_DATA)))
+      } else if (a.high >= 0x70 && a.high < 0x80) {
+        as += (AnnoType.SONG-> (a.high & 0x0F))
+        as += (AnnoType.MEASURE -> (a.mid + 0x7F))
+        return Some(AnnoTable(as.result, tableMap(SONG_DATA)))
+      }
+    }
+    None
+  }
 
   private[this] lazy val onOff: ByteRange = Discrete(Set(0x00, 0x01))
   private[this] lazy val topBit: ByteRange = onOff

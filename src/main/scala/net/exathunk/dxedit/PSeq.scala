@@ -4,7 +4,7 @@ case class Address(modelId: Byte, high: Byte, mid: Byte, low: Byte)
 
 case class Message(address: Address, data: SubFrame) {
   lazy val count: (Byte, Byte) = splitBytes(data.size)
-  // TODO test
+
   lazy val checksum: Byte = {
     import ImplicitIntToByte._
     var s: Int = 0

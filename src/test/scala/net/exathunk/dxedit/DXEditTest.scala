@@ -150,4 +150,16 @@ class DXEditTest extends FunSuite {
 
     assert(p.replace(pm) == p)
   }
+
+  test("SecondPass runPass") {
+    val parsed = Map[String, Int](
+      "Modulator Select" -> 0x03,
+      "Scene Control" -> 0x00,
+      "Common Tempo" -> 0x8C,
+      "Play Effect Swing" -> 0x32
+    )
+    val p: PSeq = FirstPass.runPass(dx200NativeBulkDumpSeq).get
+    val annoData = SecondPass.runPass(p).get
+    assert(annoData.data == parsed)
+  }
 }
