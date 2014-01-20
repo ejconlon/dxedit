@@ -35,12 +35,16 @@ package object dxedit {
         override def runPass(a: A): Try[C] = {
           p.runPass(a) flatMap { b => q.runPass(b) }
         }
+        override def unRunPass(c: C): Try[A] = {
+          q.unRunPass(c) flatMap { b => p.unRunPass(b) }
+        }
         override def validate = { p.validate; q.validate }
       }
   }
 
   trait Pass[A, B] {
     def runPass(a: A): Try[B]
+    def unRunPass(b: B): Try[A]
     def validate: Unit
   }
 

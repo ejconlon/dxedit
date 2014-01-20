@@ -17,8 +17,29 @@ object SecondPass extends Pass[PSeq, AnnoData] {
     parse(message.get, annoTable.get)
   }
 
+  override def unRunPass(annoData: AnnoData): Try[PSeq] = {
+    val d = Seq.newBuilder[Byte]
+    annoData.annoTable.table.rows.foreach { row =>
+      val name = row._1
+      val rel = row._2
+      val range = row._3
+      assert(annoData.data.contains(name))
+      val value: Byte =
+        if (rel == RelType.MSB) {
+          (annoData.data(name) >> 7) & 0x7F
+        } else  {
+          annoData.data(name) & 0x7F
+        }
+      assert(range.contains(value))
+      d += value
+    }
+    val data = d.result
+    assert(data.size == annoData.annoTable.table.size)
+    throw TodoException
+  }
+
   private[this] def parse(message: Message, annoTable: AnnoTable): Try[AnnoData] = {
-    if (message.data.size != annoTable.table.rows.size) return Failure(new Exception("Size mismatch"))
+    if (message.data.size != annoTable.table.size) return Failure(new Exception("Size mismatch"))
     val m = scala.collection.mutable.Map[String, scala.collection.mutable.Map[RelType.Value, Byte]]()
     val pairs = annoTable.table.rows zip message.data
     pairs.foreach { p: (DataRow, Byte) =>
@@ -38,7 +59,6 @@ object SecondPass extends Pass[PSeq, AnnoData] {
     val ns = Map.newBuilder[String, Int]
     m.keys.foreach { k =>
       val vd = m(k)
-      println(k +" -> "+vd)
       if (vd.size == 1) {
         assert(vd.contains(RelType.ONE))
         ns += (k -> vd(RelType.ONE))
@@ -299,6 +319,31 @@ object SecondPass extends Pass[PSeq, AnnoData] {
       }
     }
     None
+  }
+
+  private[this] def getAddress(t: AnnoTable): Option[Address] = {
+    t.table.name match {
+      case DataType.VOICE_COMMON_1 =>
+        Some(Address(0x62, 0x20, t.anno(AnnoType.PATTERN), 0x00))
+      case DataType.VOICE_COMMON_2 =>
+        Some(Address(0x62, 0x21, t.anno(AnnoType.PATTERN), 0x00))
+      case DataType.VOICE_SCENE =>
+        throw TodoException
+      case DataType.VOICE_FREE_EG =>
+        throw TodoException
+      case DataType.VOICE_STEP_SEQ =>
+        throw TodoException
+      case DataType.RHYTHM_STEP_SEQ =>
+        throw TodoException
+      case DataType.EFFECT =>
+        throw TodoException
+      case DataType.PART_MIX =>
+        throw TodoException
+      case DataType.SONG_DATA =>
+        throw TodoException
+      case _ =>
+        None
+    }
   }
 
   private[this] lazy val onOff: ByteRange = Discrete(Set(0x00, 0x01))

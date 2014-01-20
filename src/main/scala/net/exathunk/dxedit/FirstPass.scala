@@ -24,6 +24,15 @@ object FirstPass extends Pass[Frame, PSeq] {
     Failure(MultiSubFrameMismatchException(excs.result))
   }
 
+  override def unRunPass(pseq: PSeq): Try[Frame] = {
+    val frame = pseq.toFrame
+    if (frame.isDefined) {
+      Success(frame.get)
+    } else {
+      Failure(new Exception("Invalid frame"))
+    }
+  }
+
   def runPassWith(frameTable: FrameTable, frame: Frame): Try[PSeq] = {
     val rs = Seq.newBuilder[(SubFrameType, SubFrame)]
     val spec = frameTable.rows
