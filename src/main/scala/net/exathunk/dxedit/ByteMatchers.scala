@@ -85,4 +85,18 @@ object ByteMatchers {
     Gen.oneOf(a, b) flatMap { x => x.gen }
   )
 
+  def matchPosNeg(pos: ByteMatcher, neg: ByteMatcher): ByteMatcher = ByteMatcher(
+    { x =>
+      val z = neg.forward(x)
+      if (z.isDefined) None else pos.forward(x)
+    },
+    { x =>
+      val z = neg.backward(x)
+      if (z.isDefined) None else pos.backward(x)
+    },
+    for {
+      x <- pos.gen if neg.forward(x).isEmpty
+    } yield x
+  )
+
 }

@@ -35,7 +35,25 @@ object SecondPass extends Pass[PSeq, AnnoData] {
     }
     val data = d.result
     assert(data.size == annoData.annoTable.table.size)
-    throw TodoException
+    val address = getAddress(annoData.annoTable).get
+    val message = Message(address, data)
+    val pseq = PSeqs.fromBulkDump(message)
+    Success(pseq)
+  }
+
+  object PSeqs {
+    import SubFrameType._
+    import Constants._
+    def fromBulkDump(message: Message): PSeq = {
+      val parts = Map[SubFrameType, SubFrame](
+        SYSEX_START -> Seq(START_TAG),
+        MFR_ID -> Seq(YAMAHA_MFR_ID),
+        DEVICE_NUM -> Seq(0x0),
+        SYSEX_END -> Seq(END_TAG)
+      )
+      val pseq = PSeq(FirstPass.tableMap(FrameType.DX200_NATIVE_BULK_DUMP), parts)
+      pseq.replace(message)
+    }
   }
 
   private[this] def parse(message: Message, annoTable: AnnoTable): Try[AnnoData] = {

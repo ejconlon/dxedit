@@ -124,7 +124,7 @@ object FirstPass extends Pass[Frame, PSeq] {
         (SYSEX_START, ONCE, matchEquals(START_TAG)),
         (MFR_ID, ONCE, matchEquals(YAMAHA_MFR_ID)),
         (DEVICE_NUM, ONCE, matchLike("0000nnnn")),
-        (FORMAT_NUM, ONCE, matchSeven),
+        (FORMAT_NUM, ONCE, matchPosNeg(matchSeven, matchOneOf(matchEquals(SYSTEM1_MODEL_ID), matchEquals(SYSTEM2_MODEL_ID)))),
         (BYTE_COUNT_MSB, ONCE, matchSeven),
         (BYTE_COUNT_LSB, ONCE, matchSeven),
         (DATA, MANY, matchSeven),
