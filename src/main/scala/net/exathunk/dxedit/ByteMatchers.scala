@@ -1,13 +1,16 @@
 package net.exathunk.dxedit
 
+import org.scalacheck.Gen
+import org.scalacheck.Arbitrary._
+
 object ByteMatchers {
   import ImplicitIntToByte._
 
-  private[this] def mkbm(x: Byte => Option[Byte]): ByteMatcher = ByteMatcher(x, x)
+  private[this] def mkbm(x: Byte => Option[Byte], g: Gen[Byte]): ByteMatcher = ByteMatcher(x, x, g)
 
-  def matchAny: ByteMatcher = mkbm { x: Byte => Some(x) }
+  def matchAny: ByteMatcher = mkbm({ x: Byte => Some(x) }, arbitrary[Byte])
   def matchEquals(byte: Byte): ByteMatcher =
-    mkbm { x: Byte => if (x == byte) Some(byte) else None }
+    mkbm({ x: Byte => if (x == byte) Some(byte) else None }, Gen.value(byte))
 
   def matchLike(pattern: String): ByteMatcher = {
     if (pattern.size != 8) throw new Exception("Invalid pattern")
@@ -53,10 +56,22 @@ object ByteMatchers {
       }
     }
 
-    ByteMatcher(forward, backward)
+    val gen: Gen[Byte] = arbitrary[Byte] flatMap { b =>
+      var x: Byte = b
+      s.foreach { bb =>
+        if (bb._2) {
+          x = x | bb._1
+        } else {
+          x = x & (~bb._1)
+        }
+      }
+      x
+    }
+
+    ByteMatcher(forward, backward, gen)
   }
   def matchSeven: ByteMatcher =
-    mkbm { x => if ((x & 0x80) == 0) Some(x) else None }
+    mkbm({ x => if ((x & 0x80) == 0) Some(x) else None }, Gen.chooseNum(0x00, 0x7F))
 
   def matchOneOf(a: ByteMatcher, b: ByteMatcher): ByteMatcher = ByteMatcher(
     { x =>
@@ -66,7 +81,8 @@ object ByteMatchers {
     { x =>
       val y = a.backward(x)
       if (y.isDefined) y else b.backward(x)
-    }
+    },
+    Gen.oneOf(a, b) flatMap { x => x.gen }
   )
 
 }

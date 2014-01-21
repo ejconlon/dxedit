@@ -1,7 +1,6 @@
 package net.exathunk.dxedit
 
 import org.scalatest.FunSuite
-import scala.collection.SortedMap
 import scala.util.{Failure, Success}
 
 class DXEditTest extends FunSuite {
@@ -142,8 +141,8 @@ class DXEditTest extends FunSuite {
     val p: PSeq = FirstPass.runPass(dx200NativeBulkDumpSeq).get
     val q: PSeq = FirstPass.runPass(dxParamChangeSeq).get
 
-    assert(p.toFrame == Some(dx200NativeBulkDumpSeq))
-    assert(q.toFrame == Some(dxParamChangeSeq))
+    assert(p.toFrame == Success(dx200NativeBulkDumpSeq))
+    assert(q.toFrame == Success(dxParamChangeSeq))
 
     val pm: Message = p.message.get
     assert(None == q.message)

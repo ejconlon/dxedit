@@ -19,21 +19,25 @@ case class Message(address: Address, data: SubFrame) {
 }
 
 import SubFrameType._
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 case class PSeq(frameTable: FrameTable, parts: Map[SubFrameType, SubFrame]) {
-  def toFrame: Option[Frame] = {
+  def toFrame: Try[Frame] = {
     val s = Seq.newBuilder[Byte]
     frameTable.rows foreach { row =>
-      val part = parts.get(row._1)
-      if (part.isEmpty || part.get.isEmpty) return None
-      else if (row._2 == RepeatType.ONCE && part.get.size > 1) return None
+      val name = row._1
+      val part = parts.get(name)
+      if (part.isEmpty || part.get.isEmpty) return Failure(new Exception("Missing part: " + name))
+      else if (row._2 == RepeatType.ONCE && part.get.size > 1) return Failure(new Exception("Multi part: " + name))
       part.get.foreach { p =>
         val matched = row._3.backward(p)
-        if (matched.isEmpty) return None
+        if (matched.isEmpty) return Failure(new Exception("Mismatched part: " + name))
         else s += matched.get
       }
     }
-    Some(s.result)
+    Success(s.result)
   }
 
   def message: Option[Message] =

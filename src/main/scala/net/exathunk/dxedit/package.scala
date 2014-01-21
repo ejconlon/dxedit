@@ -1,5 +1,6 @@
 package net.exathunk
 
+import org.scalacheck.Gen
 import scala.util.Try
 
 package object dxedit {
@@ -15,7 +16,8 @@ package object dxedit {
   type Data = Seq[Byte]
   case class ByteMatcher(
     forward: Byte => Option[Byte],
-    backward: Byte => Option[Byte]
+    backward: Byte => Option[Byte],
+    gen: Gen[Byte]
   )
 
   type FrameRow = (SubFrameType, RepeatType, ByteMatcher)

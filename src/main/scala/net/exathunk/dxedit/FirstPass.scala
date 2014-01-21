@@ -10,7 +10,6 @@ object FirstPass extends Pass[Frame, PSeq] {
   import RepeatType._
   import SubFrameType._
 
-
   override def runPass(frame: Frame): Try[PSeq] = {
     val excs = Seq.newBuilder[SubFrameMismatchException]
     tables foreach { table =>
@@ -25,12 +24,7 @@ object FirstPass extends Pass[Frame, PSeq] {
   }
 
   override def unRunPass(pseq: PSeq): Try[Frame] = {
-    val frame = pseq.toFrame
-    if (frame.isDefined) {
-      Success(frame.get)
-    } else {
-      Failure(new Exception("Invalid frame"))
-    }
+    pseq.toFrame
   }
 
   def runPassWith(frameTable: FrameTable, frame: Frame): Try[PSeq] = {
